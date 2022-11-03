@@ -5,7 +5,7 @@ while True:
     new_task = input()
     if new_task == '':
         break
-    todo_list = todo_list + [new_task]
+    todo_list.append(new_task)
 
 print('you`ve got', str(len(todo_list)), 'tasks in yor ToDo list. Here it is:', todo_list)
 
