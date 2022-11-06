@@ -22,7 +22,7 @@ def remove_tasks():
     else:
         num = int(num)
         del todo_list[num-1]
-        print('Done. Here is new list', todo_list, '\n\n')
+        print('Done. Here is new list', todo_list, '\n')
 
 
 def showing_func():
@@ -32,7 +32,7 @@ def showing_func():
         print(todo_list)
 
 
-for i in range(100):
+while True:
     print('Enter digit if you wonna:\n 1- see  list of tasks \n 2- add tasks \n 3- remove tasks \n 4- quit \n')
     digit = int(input())
     if digit == 1:
@@ -44,3 +44,5 @@ for i in range(100):
     elif digit == 4:
         print('see ya!')
         break
+    elif digit >= 5 or digit < 0:
+        print('That`s bullshit. Try again! \n')
