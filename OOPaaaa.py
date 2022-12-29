@@ -15,18 +15,20 @@
 
 class Tasks:
     """class represents conditions for task creations"""
+
     def __init__(self, dscr, lvl="low", due_date="March", status="new"):
         self.dscr = dscr
         self.lvl = lvl
-        self.due_date = due_date    #сюда надо подключить библиотеку чтобы делала + неделя от даты создания таска
+        self.due_date = due_date  # сюда надо подключить библиотеку чтобы делала + неделя от даты создания таска
         self.status = status
 
     def __repr__(self):
-       return f"{self.dscr}"
+        return f"{self.dscr}"
 
 
 class Dict:
     """class represents list description"""
+
     def __init__(self, name):
         self.name = name
         self.t_dict = {}
@@ -45,15 +47,16 @@ class Dict:
         pass
 
     def __repr__(self):
-       return f"{self.t_dict}"
+        return f"{self.t_dict}"
+
 
 class Reminders(Tasks):
-    pass          #день до дью дэйт
+    pass  # день до дью дэйт
+
 
 # можно дополнить отдельными элементами с напоминалкой! типа класс с наследованием
 
-if __name__=="__main__":
-
+if __name__ == "__main__":
     dict_1 = Dict("Work list")
 
     task_1 = Tasks("Pup")
@@ -66,9 +69,4 @@ if __name__=="__main__":
 
     dict_1.del_task(task_1)
 
-
-
     print(dict_1)
-
-
-
