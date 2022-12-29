@@ -28,6 +28,7 @@ class Task:
 
 class TaskList:
     def __init__(self, name):
+        self.name = name
         self.tasks = {}
         self._counter = 0
 
@@ -54,7 +55,7 @@ if __name__ == "__main__":
     tasks.add(task_1)
     tasks.add(task_2)
     tasks.add(task_3)
-    print(tasks)
+    print(tasks.tasks)
 
     tasks.delete(task_1.id)
-    print(tasks)
+    print(tasks.tasks)
