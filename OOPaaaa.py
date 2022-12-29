@@ -13,10 +13,11 @@
 # print(date.strftime("%H"))
 
 
-class Tasks:
+class Task:
     """class represents conditions for task creations"""
 
     def __init__(self, dscr, lvl="low", due_date="March", status="new"):
+        self.id = None
         self.dscr = dscr
         self.lvl = lvl
         self.due_date = due_date  # сюда надо подключить библиотеку чтобы делала + неделя от даты создания таска
@@ -25,48 +26,35 @@ class Tasks:
     def __repr__(self):
         return f"{self.dscr}"
 
-
-class Dict:
-    """class represents list description"""
-
+class TaskList:
     def __init__(self, name):
-        self.name = name
-        self.t_dict = {}
+        self.tasks = {}
+        self._counter = 0
 
-    def add_task(self, name):
-        self.t_dict[name] = (name.lvl, name.status, name.due_date)
-        pass
+    def add(self, task):
+        self._counter += 1
+        task.id = self._counter
+        self.tasks[task.id] = task
 
-    # def __delitem__(self, key):  я так понял надо в сторону этой этого мэджик метода смотреть??
-    #     del self[key]
-    def del_task(self, task):
-        del self[task.dscr]
-        pass
+    def delete(self, task_id):
+        del self.tasks[task_id]
 
-    def showALL_tasks(self):
-        pass
-
-    def __repr__(self):
-        return f"{self.t_dict}"
-
-
-class Reminders(Tasks):
+class Reminders(Task):
     pass  # день до дью дэйт
 
 
 # можно дополнить отдельными элементами с напоминалкой! типа класс с наследованием
 
 if __name__ == "__main__":
-    dict_1 = Dict("Work list")
+    tasks = TaskList('My first TODO list')
 
-    task_1 = Tasks("Pup")
-    task_2 = Tasks("Eat")
-    task_3 = Tasks("Calm")
-    dict_1.add_task(task_1)
-    dict_1.add_task(task_2)
-    dict_1.add_task(task_3)
-    print(dict_1)
+    task_1 = Task("Pup")
+    task_2 = Task("Eat")
+    task_3 = Task("Calm")
+    tasks.add(task_1)
+    tasks.add(task_2)
+    tasks.add(task_3)
+    print(tasks)
 
-    dict_1.del_task(task_1)
-
-    print(dict_1)
+    tasks.delete(task_1.id)
+    print(tasks)
