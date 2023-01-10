@@ -1,50 +1,58 @@
 class Task:
-    def __init__(self, description, status='new'):
+    def __init__(self, description, status='NEW'):
         self.description = description
         self.status = status
 
     def __repr__(self):
-            return f"{self.description} - {self.status}"
+        return f"{self.description} - {self.status}"
 
 
-class Base:
+class TaskStorage:
     def __init__(self, description):
         self.description = description
         self.storage = []
-
 
     def add_task(self, descriprion):
         task = Task(descriprion)
         self.storage.append(task)
         print(f'task "{descriprion}" added')
 
+    def edit_description(self, task_id, new_description):
+        task = self.storage[task_id]
+        task.description = new_description
 
     def set_status(self, task_id, new_status):
+        if new_status.upper() not in ['NEW', 'DONE']:
+            raise ValueError(f'Wrong status: {new_status}')
         task = self.storage[task_id]
-        task.status = new_status
-        print(f'status of "{task.description}" replaced by {new_status}')
+        task.status = new_status.upper()
+        print(f'status of "{task.description}" replaced by {new_status.upper()}')
 
     def show_specific_list(self, specific_status):
+        if specific_status.upper() not in ['NEW', 'DONE']:
+            raise ValueError(f'Wrong status: {specific_status}')
         for task in self.storage:
-            if task.status == specific_status:
-                print(f"{specific_status} tasks here: {task.description} : {task.status}")
+            if task.status == specific_status.upper():
+                print(f"{specific_status} tasks here: {task.description} - {task.status}")
 
 
-main_base = Base('Main base')
+main_storage = TaskStorage('Main base')
 
-main_base.add_task('lup')
-main_base.add_task('pupa')
-main_base.add_task('zukko')
-main_base.add_task('pipika')
-main_base.add_task('hophopa')
-main_base.add_task('zhuzhuzhu')
+if __name__ == "__main__":
 
-print(main_base.storage)  # checking whole the list
+    main_storage.add_task('lup')
+    main_storage.add_task('pupa')
+    main_storage.add_task('zukko')
+    main_storage.add_task('pipika')
+    main_storage.add_task('hophopa')
+    main_storage.add_task('zhuzhuzhu')
 
-main_base.set_status(2, "done")        # test editing task status
-main_base.set_status(4, "done")
+    print(main_storage.storage)  # checking whole the list
 
-print(main_base.storage)  # checking whole the list whith changes
+    main_storage.set_status(2, 'DONE')        # test editing task status
+    main_storage.set_status(4, "DONE")
 
-main_base.show_specific_list("done")                # checking how functions work
-# show_archive()
+    print(main_storage.storage)  # checking whole the list whith changes
+
+    main_storage.show_specific_list("done")                # checking how functions work
+    # show_archive()
