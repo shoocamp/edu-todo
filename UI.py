@@ -12,11 +12,12 @@ def print_list_with_indexes():
 def main_menu():
     """printing of main menu & UI processing"""
     print('\n 1- add new task \n 2- edit description \n 3- edit status '
-          f'\n 4- show all tasks ({len(ToDo_CU.main_storage.storage)}) \n 5- show archive \n 6- show new tasks \n'
+          f'\n 4- show active tasks \n 5- show all tasks ({len(ToDo_CU.main_storage.storage)}) '
+          f'\n 6- show completed tasks  \n'
           ' OR Press Enter to Quit')
     ui = input()
     if ui == "":
-        sys.exit('See ya (:')   #так можно? или это жесткое что-то?
+        sys.exit(0)  # так можно? или это жесткое что-то?
     else:
         try:
             ui_dig = int(ui)
@@ -34,9 +35,10 @@ def menu_for_choosing_tasks_to_change():
         return t_id
     except ValueError:
         print('You have to put only one digit from the list.')
+        return "error"
 
 
-def checking_if_list_empty():
+def is_list_empty():
     if len(ToDo_CU.main_storage.storage) == 0:
         print("List is empty yet. Put some tasks to start.")
 
@@ -46,37 +48,48 @@ while True:
 
     if ui_main_menu == 1:
         task_description = input('Task description?\n')
-        task = ToDo_CU.Task(task_description)
-        ToDo_CU.main_storage.add_task(task)
-        print(ToDo_CU.main_storage.storage)
+        if task_description != "":
+            task = ToDo_CU.Task(task_description)
+            ToDo_CU.main_storage.add_task(task)
+            print(ToDo_CU.main_storage.storage)
+        else:
+            print("Empty description is not allowed")
 
     elif ui_main_menu == 2:
-        if len(ToDo_CU.main_storage.storage) != 0:  # проверка не пустой ли лист. не понимаю как избежать повторения этих строк везде дальше...
+        if len(ToDo_CU.main_storage.storage) != 0:  # проверка не пустой ли лист. не понимаю как избежать повторения
+            # этих строк везде дальше...
             task_id = menu_for_choosing_tasks_to_change()
             new_description = input('New description:\n')
             ToDo_CU.main_storage.edit_description(task_id-1, new_description)
-            print(f'Result is: {ToDo_CU.main_storage.storage[task_id-1]}\nAnd all list is:{ToDo_CU.main_storage.storage}')
+            print(f'Result is: {ToDo_CU.main_storage.storage[task_id-1]}\n'
+                  f'And all list is:{ToDo_CU.main_storage.storage}')
         else:
-                print("List is empty yet. Put some tasks to start.")
+            print("List is empty yet. Put some tasks to start.")
     elif ui_main_menu == 3:
-        print('Choose task')
-        print_list_with_indexes()
-        task_id = int(input())
-        new_status = int(input("You can choose 1 - DONE or 2 - NEW status \n"))
-        if new_status == 1:
-            ToDo_CU.main_storage.set_status(task_id - 1, 'DONE')
+        if len(ToDo_CU.main_storage.storage) != 0:
+            print('Choose task')
             print_list_with_indexes()
+            task_id = input()
+            if task_id != "":  # есть ли какой-то способ избегать этих if конструкций для проверки
+                # введенных пользователем значений? дальше по коду если пользователь не введет цифру, то прога
+                # завершится с ошибкой( опять IF городить?
+                new_status = int(input("You can choose 1 - DONE or 2 - NEW status \n"))
+                if new_status == 1:
+                    ToDo_CU.main_storage.set_status(int(task_id) - 1, 'DONE')
+                    print_list_with_indexes()
+                else:
+                    ToDo_CU.main_storage.set_status(int(task_id) - 1, 'NEW')
+                    print_list_with_indexes()
+            else:
+                print("You didn`t pick a task")
         else:
-            ToDo_CU.main_storage.set_status(task_id - 1, 'NEW')
-            print_list_with_indexes()
+            print("List is empty yet. Put some tasks to start.")
 
     elif ui_main_menu == 4:
-        print(ToDo_CU.main_storage.storage)
-
-    elif ui_main_menu == 5:
-        ToDo_CU.main_storage.show_specific_list('done')
-
-    elif ui_main_menu == 6:
         ToDo_CU.main_storage.show_specific_list('new')
 
-""" просто измнение файла для проверки пулреквеста"""
+    elif ui_main_menu == 5:
+        print(ToDo_CU.main_storage.storage)
+
+    elif ui_main_menu == 6:
+        ToDo_CU.main_storage.show_specific_list('done')

@@ -9,7 +9,7 @@ class Task:
         self.due_date = due_date
 
     def __repr__(self):
-        return f"{self.description}/{self.status}/{self.start_date}/{self.due_date}"
+        return f'{self.description}/{self.status}/{self.start_date.strftime("%d.%m.%y - %H.%M")}/{self.due_date}'
 
 
 class TaskStorage:
@@ -43,7 +43,6 @@ class TaskStorage:
 main_storage = TaskStorage('Main base')
 
 if __name__ == "__main__":
-
     # main_storage.add_task('lup')
     # main_storage.add_task('pupa')
     # main_storage.add_task('zukko')
@@ -52,11 +51,11 @@ if __name__ == "__main__":
     # main_storage.add_task('zhuzhuzhu')
 
     print(main_storage.storage)  # checking whole the list
-
-    main_storage.set_status(2, 'DONE')        # test editing task status
-    main_storage.set_status(4, "DONE")
-
-    print(main_storage.storage)  # checking whole the list whith changes
-
-    main_storage.show_specific_list("done")                # checking how functions work
+    #
+    # main_storage.set_status(2, 'DONE')        # test editing task status
+    # main_storage.set_status(4, "DONE")
+    #
+    # print(main_storage.storage)  # checking whole the list whith changes
+    #
+    # main_storage.show_specific_list("done")                # checking how functions work
     # show_archive()
