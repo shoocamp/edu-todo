@@ -36,10 +36,10 @@ def menu_for_choosing_tasks_to_change():
         print('You have to put only one digit from the list.')
 
 
-def checking_if_list_empty():
-    if len(ToDo_CU.main_storage.storage) == 0:
-        print("List is empty yet. Put some tasks to start.")
-
+# def checking_if_list_empty():
+#     """func which works when list is empty yet"""
+#     if len(ToDo_CU.main_storage.storage) == 0:
+#         print("List is empty yet. Put some tasks to start.")
 
 while True:
     ui_main_menu = main_menu()
@@ -57,19 +57,21 @@ while True:
             ToDo_CU.main_storage.edit_description(task_id-1, new_description)
             print(f'Result is: {ToDo_CU.main_storage.storage[task_id-1]}\nAnd all list is:{ToDo_CU.main_storage.storage}')
         else:
-                print("List is empty yet. Put some tasks to start.")
+            print("List is empty yet. Put some tasks to start.")
     elif ui_main_menu == 3:
-        print('Choose task')
-        print_list_with_indexes()
-        task_id = int(input())
-        new_status = int(input("You can choose 1 - DONE or 2 - NEW status \n"))
-        if new_status == 1:
-            ToDo_CU.main_storage.set_status(task_id - 1, 'DONE')
+        if len(ToDo_CU.main_storage.storage) != 0:
+            print('Choose task')
             print_list_with_indexes()
+            task_id = int(input())
+            new_status = int(input("You can choose 1 - DONE or 2 - NEW status \n"))
+            if new_status == 1:
+                ToDo_CU.main_storage.set_status(task_id - 1, 'DONE')
+                print_list_with_indexes()
+            else:
+                ToDo_CU.main_storage.set_status(task_id - 1, 'NEW')
+                print_list_with_indexes()
         else:
-            ToDo_CU.main_storage.set_status(task_id - 1, 'NEW')
-            print_list_with_indexes()
-
+            print("List is empty yet. Put some tasks to start.")
     elif ui_main_menu == 4:
         print(ToDo_CU.main_storage.storage)
 
@@ -79,4 +81,3 @@ while True:
     elif ui_main_menu == 6:
         ToDo_CU.main_storage.show_specific_list('new')
 
-""" просто измнение файла для проверки пулреквеста"""
