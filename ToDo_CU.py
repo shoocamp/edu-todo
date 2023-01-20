@@ -1,4 +1,4 @@
-from _datetime import datetime
+from datetime import datetime
 
 
 class Task:
@@ -25,7 +25,7 @@ class TaskStorage:
         task = self.storage[task_id]
         task.description = new_description
 
-    def set_status(self, task_id, new_status):
+    def set_task_status(self, task_id, new_status):
         if new_status.upper() not in ['NEW', 'DONE']:
             raise ValueError(f'Wrong status: {new_status}')
         task = self.storage[task_id]
@@ -39,23 +39,21 @@ class TaskStorage:
             if task.status == specific_status.upper():
                 print(f"{specific_status} tasks here: {task.description} - {task.status}")
 
+    def tasks_with_idexes(self):
+        result = []  # нормально если этим методом сделают новый список?
+        for (i, item) in enumerate(self.storage, start=1):
+            result.append(f'{str(i)}: {item}')
+        return result
+
 
 main_storage = TaskStorage('Main base')
 
 if __name__ == "__main__":
-    # main_storage.add_task('lup')
-    # main_storage.add_task('pupa')
-    # main_storage.add_task('zukko')
-    # main_storage.add_task('pipika')
-    # main_storage.add_task('hophopa')
-    # main_storage.add_task('zhuzhuzhu')
+    print(main_storage.storage)
 
-    print(main_storage.storage)  # checking whole the list
-    #
-    # main_storage.set_status(2, 'DONE')        # test editing task status
-    # main_storage.set_status(4, "DONE")
-    #
-    # print(main_storage.storage)  # checking whole the list whith changes
-    #
-    # main_storage.show_specific_list("done")                # checking how functions work
-    # show_archive()
+    task_1 = Task("popa")
+    task_2 = Task("kloklo")
+    main_storage.add_task(task_1)
+    main_storage.add_task(task_2)
+    print(main_storage.storage)
+    print(main_storage.tasks_with_idexes())
