@@ -45,6 +45,12 @@ class TaskStorage:
             result.append(f'{str(i)}: {item}')
         return result
 
+    def is_list_empty(self):
+        if len(self.storage) == 0:
+            return True
+        else:
+            return False
+
 
 main_storage = TaskStorage('Main base')
 
@@ -55,5 +61,7 @@ if __name__ == "__main__":
     task_2 = Task("kloklo")
     main_storage.add_task(task_1)
     main_storage.add_task(task_2)
-    print(main_storage.storage)
+    main_storage.set_task_status(1, 'done')
+
     print(main_storage.tasks_with_idexes())
+    print(main_storage.show_specific_list('done'))
