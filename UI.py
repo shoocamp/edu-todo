@@ -12,7 +12,7 @@ class CLIHandler:
         if task_description != "":
             task = Task(task_description)
             self.storage_param.add_task(task)
-            print(self.storage_param)
+            print(self.storage_param.storage)
         else:
             print("Empty description is not allowed")
 
@@ -22,9 +22,12 @@ class CLIHandler:
         else:
             task_id = menu_of_tasks_to_change()
             new_description = input('New description:\n')
-            self.storage_param.edit_description(task_id - 1, new_description)
-            print(f'Result is: {self.storage_param.storage[task_id - 1]}\n'
-                  f'And all list is:{self.storage_param.storage}')
+            if new_description != "":
+                self.storage_param.edit_description(task_id - 1, new_description)
+                print(f'Result is: {self.storage_param.storage[task_id - 1]}\n'
+                      f'And all list is:{self.storage_param.storage}')
+            else:
+                print("Empty description is not allowed")
 
     def edit_status(self):
         if self.storage_param.is_list_empty():
@@ -40,12 +43,11 @@ class CLIHandler:
                 self.storage_param.set_task_status(int(task_id) - 1, 'NEW')
                 print(self.storage_param.tasks_with_idexes())
 
-    def specific_list(self, specific):
+    def show_with_status(self, specific):
         if specific == '':
             print(self.storage_param.storage)
         else:
             self.storage_param.show_specific_list(specific)
-
 
 
 def main_menu():
@@ -86,10 +88,10 @@ while True:
         handler.edit_status()
 
     elif ui_main_menu == 4:
-        handler.specific_list('new')
+        handler.show_with_status('new')
 
     elif ui_main_menu == 5:
-        handler.specific_list('')
+        handler.show_with_status('')
 
     elif ui_main_menu == 6:
-        handler.specific_list('done')
+        handler.show_with_status('done')
