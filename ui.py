@@ -1,6 +1,7 @@
 import sys
 from rich.prompt import IntPrompt
-from ToDo_CU import Task, main_storage
+from todo_cu import Task, main_storage
+from datetime import datetime as dt
 
 
 class CLIHandler:
@@ -15,6 +16,12 @@ class CLIHandler:
             print(self.storage_param.storage)
         else:
             print("Empty description is not allowed")
+        due_date = input('Set due date.\nFormat, should be YYYY-MM-DD, H:M\n')
+        if validatetime(due_date):
+            task.due_date = due_date
+        else:
+            print("cheto s datoi")
+
 
     def edit_description(self):
         if self.storage_param.is_list_empty():
@@ -69,8 +76,16 @@ def menu_of_tasks_to_change():
     choices = []
     for t in range(int(len(main_storage.storage))):
         choices.append(str(t+1))
-    ui = IntPrompt.ask('Pick a task \n', choices=choices, show_choices=True)
+    ui = IntPrompt.ask('Pick a task \n', choices=choices, show_choices=False)
     return ui
+
+
+def validatetime(date_time_text):  # нашел такую функцию на стековерфло. это ж не запрещено?)
+    try:
+        due_date = dt.strptime(date_time_text, '%Y-%m-%d, %H:%M')
+    except ValueError:
+        raise ValueError("Incorrect data format, should be YYYY-MM-DD, H:M")
+    return due_date
 
 
 handler = CLIHandler(main_storage)
