@@ -46,10 +46,7 @@ class TaskStorage:
         return result
 
     def is_list_empty(self):
-        if len(self.storage) == 0:
-            return True
-        else:
-            return False
+        return len(self.storage) == 0
 
 
 main_storage = TaskStorage('Main base')

@@ -4,6 +4,24 @@ from todo_cu import Task, main_storage
 from datetime import datetime as dt
 
 
+def validatetime(date_time_text):  # нашел такую функцию на стековерфло. это ж не запрещено?)
+    try:
+        due_date = dt.strptime(date_time_text, '%Y-%m-%d, %H:%M')
+    except ValueError:
+        raise ValueError("Incorrect data format, should be YYYY-MM-DD, H:M")
+    return due_date
+
+
+def menu_of_tasks_to_change():
+    """printing of task list to choosing task & UI processing"""
+    print(main_storage.tasks_with_idexes())
+    choices = []
+    for t in range(int(len(main_storage.storage))):
+        choices.append(str(t + 1))
+    ui = IntPrompt.ask('Pick a task \n', choices=choices, show_choices=False)
+    return ui
+
+
 class CLIHandler:
     def __init__(self, storage_param):
         self.storage_param = storage_param
@@ -17,11 +35,11 @@ class CLIHandler:
         else:
             print("Empty description is not allowed")
         due_date = input('Set due date.\nFormat, should be YYYY-MM-DD, H:M\n')
-        if validatetime(due_date):
+        try:
+            validatetime(due_date)
             task.due_date = due_date
-        else:
+        except ValueError:
             print("cheto s datoi")
-
 
     def edit_description(self):
         if self.storage_param.is_list_empty():
@@ -68,24 +86,6 @@ def main_menu():
         sys.exit(0)
     else:
         return ui
-
-
-def menu_of_tasks_to_change():
-    """printing of task list to choosing task & UI processing"""
-    print(main_storage.tasks_with_idexes())
-    choices = []
-    for t in range(int(len(main_storage.storage))):
-        choices.append(str(t+1))
-    ui = IntPrompt.ask('Pick a task \n', choices=choices, show_choices=False)
-    return ui
-
-
-def validatetime(date_time_text):  # нашел такую функцию на стековерфло. это ж не запрещено?)
-    try:
-        due_date = dt.strptime(date_time_text, '%Y-%m-%d, %H:%M')
-    except ValueError:
-        raise ValueError("Incorrect data format, should be YYYY-MM-DD, H:M")
-    return due_date
 
 
 handler = CLIHandler(main_storage)
