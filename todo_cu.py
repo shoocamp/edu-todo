@@ -2,14 +2,38 @@ from datetime import datetime
 
 
 class Task:
-    def __init__(self, description, status='NEW', start_date=datetime.today(), due_date='NO SET'):
+    VALID_STATUSES = ["NEW", "DONE"]
+
+    def __init__(self, description, due_date=None):
+        self.status = "NEW"
+
+        if description == "":
+            raise ValueError("Description shouldn't be empty")
+
         self.description = description
+        self.created = datetime.now()
+        self.due_date = due_date
+
+    def update_description(self, description):
+        if description == "":
+            raise ValueError("Description shouldn't be empty")
+        self.description = description
+
+    def update_status(self, status):
+        status = status.upper()
+        if status not in self.VALID_STATUSES:
+            raise ValueError(f"Invalid status '{status}', valid options: {self.VALID_STATUSES}")
         self.status = status
-        self.start_date = start_date
+
+    def update_due_date(self, due_date):
+        if not isinstance(due_date, datetime):
+            raise ValueError(f"due_date should be a datetime object, got: {due_date} ({type(due_date)})")
         self.due_date = due_date
 
     def __repr__(self):
-        return f'{self.description}/{self.status}/{self.start_date.strftime("%d.%m.%y - %H.%M")}/{self.due_date}'
+        return (f"{self.description}/{self.status}/"
+                f"{self.created.strftime('%d.%m.%y - %H.%M')}/"
+                f"{self.due_date.strftime('%d.%m.%y - %H.%M') if self.due_date else ''}")
 
 
 class TaskStorage:
@@ -19,39 +43,46 @@ class TaskStorage:
 
     def add_task(self, task):
         self.storage.append(task)
-        print(f'task "{task.description}" added')
+
+    def get_task_by_id(self, task_id):
+        if (len(self.storage) - 1) < task_id < 0:
+            raise ValueError(f"Invalid task id: {task_id}")
+        return self.storage[task_id]
 
     def edit_description(self, task_id, new_description):
-        task = self.storage[task_id]
-        task.description = new_description
+        task = self.get_task_by_id(task_id)
+        task.update_description(new_description)
 
     def set_task_status(self, task_id, new_status):
-        if new_status.upper() not in ['NEW', 'DONE']:
-            raise ValueError(f'Wrong status: {new_status}')
-        task = self.storage[task_id]
-        task.status = new_status.upper()
-        print(f'status of "{task.description}" replaced by {new_status.upper()}')
+        task = self.get_task_by_id(task_id)
+        task.update_status(new_status)
 
-    def show_specific_list(self, specific_status):
-        if specific_status.upper() not in ['NEW', 'DONE']:
-            raise ValueError(f'Wrong status: {specific_status}')
+    def filter_tasks_by_status(self, status):
+        if status is None:
+            return self.storage
+        status = status.upper()
+        tasks = []
         for task in self.storage:
-            if task.status == specific_status.upper():
-                print(f"{specific_status} tasks here: {task.description} - {task.status}")
+            if task.status == status:
+                tasks.append(task)
+        return tasks
 
-    def tasks_with_idexes(self):
-        result = []  # нормально если этим методом сделают новый список?
-        for (i, item) in enumerate(self.storage, start=1):
-            result.append(f'{str(i)}: {item}')
-        return result
+    def get_size(self):
+        return len(self.storage)
+
+    def __repr__(self):
+        return "\n".join(map(str, self.storage))
 
     def is_list_empty(self):
         return len(self.storage) == 0
 
+def get_default_storage():
+    return TaskStorage('Default')
 
-main_storage = TaskStorage('Main base')
 
 if __name__ == "__main__":
+    main_storage = get_default_storage()
+
     print(main_storage.storage)
 
     task_1 = Task("popa")
@@ -60,5 +91,4 @@ if __name__ == "__main__":
     main_storage.add_task(task_2)
     main_storage.set_task_status(1, 'done')
 
-    print(main_storage.tasks_with_idexes())
-    print(main_storage.show_specific_list('done'))
+    print(main_storage.filter_tasks_by_status('done'))
