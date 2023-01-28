@@ -94,7 +94,7 @@ if __name__ == "__main__":
             elif main_menu_command == 6:
                 handler.show_with_status('done')
             elif main_menu_command == 7:
-                print("buy")
+                print("bye")
                 sys.exit(0)
         except KeyboardInterrupt:
             # `ctrl + c` - exit from sub-menu
