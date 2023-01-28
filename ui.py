@@ -102,4 +102,3 @@ if __name__ == "__main__":
             continue
         except Exception as e:
             print(e)
-            raise
