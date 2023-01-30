@@ -45,9 +45,10 @@ class TaskStorage:
         self.storage.append(task)
 
     def get_task_by_id(self, task_id):
-        if (len(self.storage) - 1) < task_id < 0:
-            raise ValueError(f"Invalid task id: {task_id}")
-        return self.storage[task_id]
+        if 0 < task_id < len(self.storage) - 1:
+            return self.storage[task_id]
+
+        raise ValueError(f"Invalid task id: {task_id}")
 
     def edit_description(self, task_id, new_description):
         task = self.get_task_by_id(task_id)
