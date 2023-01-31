@@ -98,7 +98,7 @@ if __name__ == "__main__":
                 sys.exit(0)
         except KeyboardInterrupt:
             # `ctrl + c` - exit from sub-menu
-            print(f"Undo cmd {main_menu_command}")
+            print(f"\nUndo cmd {main_menu_command}")
             continue
         except Exception as e:
             print(e)
