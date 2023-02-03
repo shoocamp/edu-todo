@@ -12,10 +12,8 @@ def test_task_creation():
 
 def test_task_creation_empty():
     dscr = ''
-    try:
-        task = Task(dscr)  # may I leave it like it is?
-    except ValueError:
-        pass
+    with pytest.raises(ValueError):
+         task = Task(dscr)
 
 
 def test_update_dscr():
@@ -41,7 +39,7 @@ def test_update_status():
     assert task.status == "NEW"
     new_status = "done"
     task.update_status(new_status)
-    assert task.status.lower() == new_status  # tricky or bullshit?
+    assert task.status == new_status.upper()  # tricky or bullshit?
 
 
 def test_update_status_no_valid():
