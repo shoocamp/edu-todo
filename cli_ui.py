@@ -98,12 +98,22 @@ class CLIHandler:
 if __name__ == "__main__":
     sqlite_storage = SQLiteStorage("todoika.db")
     handler = CLIHandler(sqlite_storage)
-    handler.login()
 
     while True:
-        main_menu_command = handler.get_main_menu_command()
+        main_menu_command = None
 
         try:
+            if not handler.user:
+                init_cmd = IntPrompt.ask("Login (1) or Register (2)", choices=["1", "2"])
+                cmd_mapping = {
+                    1: handler.login,
+                    2: handler.register
+                }
+                cmd_mapping[init_cmd]()
+                continue
+
+            main_menu_command = handler.get_main_menu_command()
+
             if main_menu_command == 1:
                 handler.create_task()
             elif main_menu_command == 2:
