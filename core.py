@@ -60,7 +60,7 @@ class TasksList:
             self.storage.add_task(self.user_id, self.db_id, task.description, task.status, task.due_date)
 
     def get_task_by_id(self, task_id):
-        if 0 < task_id < len(self.tasks) - 1:
+        if 0 <= task_id <= len(self.tasks) - 1:
             return self.tasks[task_id]
 
         raise ValueError(f"Invalid task id: {task_id}")
