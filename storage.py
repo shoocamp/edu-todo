@@ -110,7 +110,7 @@ class TasksListBuilder:
         for task_db_id, description, status, created_ts, due_date_ts, _, _, _ in related_tasks:
             # TODO: proper init
             task = Task(description, storage=self.storage, db_id=task_db_id)
-            task_list.add_task(task)
+            task_list.add_task(task, save=False)
 
         return task_list
 

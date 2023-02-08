@@ -54,9 +54,9 @@ class TasksList:
         self.db_id = db_id
         self.user_id = user_id
 
-    def add_task(self, task):
+    def add_task(self, task, save=True):
         self.tasks.append(task)
-        if self.storage is not None:
+        if self.storage is not None and save:
             self.storage.add_task(self.user_id, self.db_id, task.description, task.status, task.due_date)
 
     def get_task_by_id(self, task_id):
