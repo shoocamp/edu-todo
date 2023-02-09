@@ -1,12 +1,33 @@
 import sys
-from rich.prompt import IntPrompt, Confirm, Prompt
-from todo_cu import Task, get_default_storage
 from datetime import datetime as dt
+from typing import Optional
+
+from rich.prompt import IntPrompt, Confirm, Prompt
+
+from core import Task
+from storage import SQLiteStorage, UserBuilder, TasksListBuilder
+from users import User
 
 
 class CLIHandler:
-    def __init__(self, task_storage):
-        self.task_storage = task_storage
+    def __init__(self, storage: SQLiteStorage):
+        self.user: Optional[User] = None
+        self.current_list = None
+        self.storage = storage
+        self.user_builder = UserBuilder(storage)
+        self.tasks_list_builder = TasksListBuilder(storage)
+
+    def login(self):
+        user_name = Prompt.ask('Enter your name')
+        # TODO: check password
+        self.user = self.user_builder.build_by_name(user_name)
+        self.current_list = self.tasks_list_builder.build(self.user.db_id, self.user.default_list_id)
+
+    def register(self):
+        user_name = Prompt.ask('Enter your name')
+        # TODO: ask password
+        self.user = self.user_builder.build_new(user_name, "password")
+        self.current_list = self.tasks_list_builder.build(self.user.db_id, self.user.default_list_id)
 
     def create_task(self):
         task_description = Prompt.ask('Task description')
@@ -16,12 +37,12 @@ class CLIHandler:
             due_date = Prompt.ask('Set due date (format YYYY-MM-DD, H:M)')
             task.due_date = dt.strptime(due_date, '%Y-%m-%d, %H:%M')
 
-        self.task_storage.add_task(task)
+        self.current_list.add_task(task)
 
     def edit_description(self):
         task_id = self.get_task_id()
         new_description = Prompt.ask('New description')
-        self.task_storage.edit_description(task_id, new_description)
+        self.current_list.edit_description(task_id, new_description)
         print("Done")
 
     def edit_status(self):
@@ -33,11 +54,11 @@ class CLIHandler:
             2: "NEW"
         }
 
-        self.task_storage.set_task_status(task_id, status_mapping[status_id])
+        self.current_list.set_task_status(task_id, status_mapping[status_id])
 
     def show_with_status(self, status, indexes=False):
         lines = []
-        for i, t in enumerate(self.task_storage.filter_tasks_by_status(status), start=1):
+        for i, t in enumerate(self.current_list.filter_tasks_by_status(status), start=1):
             due_date = t.due_date.strftime("%d.%m.%y - %H.%M") if t.due_date is not None else ""
             status = "☐" if t.status == "NEW" else "☑"
 
@@ -56,7 +77,7 @@ class CLIHandler:
             "2: edit description",
             "3: edit status",
             "4: show active tasks",
-            f"5: show all tasks ({self.task_storage.get_size()})",
+            f"5: show all tasks ({self.current_list.get_size()})",
             "6: show completed tasks",
             "7: quit\n"
         ]
@@ -68,19 +89,31 @@ class CLIHandler:
         """printing of task list to choosing task & UI processing"""
         self.show_with_status(None, indexes=True)
         choices = []
-        for t in range(int(len(self.task_storage.storage))):
+        for t in range(int(len(self.current_list.tasks))):
             choices.append(str(t + 1))
         task_id = IntPrompt.ask('Pick a task \n', choices=choices, show_choices=False)
         return task_id - 1
 
 
 if __name__ == "__main__":
-    handler = CLIHandler(get_default_storage())
+    sqlite_storage = SQLiteStorage("todoika.db")
+    handler = CLIHandler(sqlite_storage)
 
     while True:
-        main_menu_command = handler.get_main_menu_command()
+        main_menu_command = None
 
         try:
+            if not handler.user:
+                init_cmd = IntPrompt.ask("Login (1) or Register (2)", choices=["1", "2"])
+                cmd_mapping = {
+                    1: handler.login,
+                    2: handler.register
+                }
+                cmd_mapping[init_cmd]()
+                continue
+
+            main_menu_command = handler.get_main_menu_command()
+
             if main_menu_command == 1:
                 handler.create_task()
             elif main_menu_command == 2:
