@@ -1,7 +1,17 @@
-from todo_cu import Task, TaskStorage
+from datetime import datetime as dt
 
 import pytest
-from datetime import datetime as dt
+
+from todoika.core import Task, TasksList
+
+
+@pytest.fixture()
+def list_for_tests():
+    storage = TasksList('any dscr')
+    storage.add_task(Task('any dscr1'))
+    storage.add_task(Task('any dscr2'))
+    storage.add_task(Task('any dscr3'))
+    return storage
 
 
 def test_task_creation():
@@ -57,53 +67,52 @@ def test_update_due_date():
 
 def test_update_due_date_error():
     task = Task('any dscr')
-    due_date = "27 February 2023"   #  not dt.strptime("", "%d %B %Y")
+    due_date = "27 February 2023"  # not dt.strptime("", "%d %B %Y")
     with pytest.raises(ValueError):
         task.update_due_date(due_date)
 
 
-"""Tests for TaskStorage Class"""
-
-
 def test_storage_creation():
     test_dscr = "test storage"
-    test_storage = TaskStorage(test_dscr)
+    test_storage = TasksList(test_dscr)
     assert test_storage.description == test_dscr
 
 
 def test_add_task():
     task = Task('any dscr')
-    storage = TaskStorage('any dscr')
+    storage = TasksList('any dscr')
     storage.add_task(task)
-    assert storage.storage[0] == task
+    assert storage.get_task_by_id(0) == task
 
 
-def test_get_task_by_id():
-    storage = TaskStorage('any dscr')
-    storage.storage = [1,2,3,4]
-    task_id = 2
-    assert storage.get_task_by_id(task_id-1) == task_id
+def test_get_task_by_id_1(list_for_tests: TasksList):
+    task = list_for_tests.tasks[0]
+    assert list_for_tests.get_task_by_id(1, start=1) == task
 
 
-def test_get_task_by_id_error():
-    storage = TaskStorage('any dscr')
-    storage.storage = [1, 2, 3, 4, 5, 6, 7]
-    task_id = 8
+def test_get_task_by_id_2(list_for_tests: TasksList):
+    task = list_for_tests.tasks[2]
+    assert list_for_tests.get_task_by_id(3, start=1) == task
+
+
+def test_get_task_by_id_3(list_for_tests: TasksList):
+    task = list_for_tests.tasks[2]
+    assert list_for_tests.get_task_by_id(2, start=0) == task
+
+
+def test_get_task_by_id_error_1(list_for_tests: TasksList):
     with pytest.raises(ValueError):
-        storage.get_task_by_id(task_id - 1)
+        list_for_tests.get_task_by_id(0, start=1)
 
 
-@pytest.fixture()
-def list_for_tests():
-    storage = TaskStorage('any dscr')   # Похоже?))
-    t1 = Task('any dscr1')
-    t2 = Task('any dscr2')
-    t3 = Task('any dscr3')
-    storage.storage.append(t1)
-    storage.storage.append(t2)
-    storage.storage.append(t3)
-    print(storage.storage)
-    return storage
+def test_get_task_by_id_error_2(list_for_tests: TasksList):
+    with pytest.raises(ValueError):
+        list_for_tests.get_task_by_id(4, start=1)
+
+
+def test_get_task_by_id_error_3(list_for_tests: TasksList):
+    with pytest.raises(ValueError):
+        list_for_tests.get_task_by_id(3, start=0)
 
 
 def test_edit_description(list_for_tests):
@@ -111,7 +120,7 @@ def test_edit_description(list_for_tests):
     task_id = 1
     storage = list_for_tests
     storage.edit_description(task_id, new_dscr)
-    t2 = storage.storage[task_id]
+    t2 = storage.get_task_by_id(task_id)
     assert t2.description == new_dscr
 
 
@@ -119,15 +128,14 @@ def test_edit_status(list_for_tests):
     new_status = "done"
     task_id = 1
     list_for_tests.set_task_status(task_id, new_status)
-    assert list_for_tests.storage[task_id].status == new_status.upper()
+    assert list_for_tests.get_task_by_id(task_id).status == new_status.upper()
 
 
 def test_filter_tasks_by_status(list_for_tests):
     test_status = "DONE"
-    t2 = list_for_tests.storage[1]
+    t2 = list_for_tests.get_task_by_id(1)
     t2.status = test_status
-    test_storage = []
-    test_storage.append(t2)
+    test_storage = [t2]
     assert list_for_tests.filter_tasks_by_status(test_status) == test_storage
 
 
@@ -135,9 +143,5 @@ def test_get_size(list_for_tests):
     assert list_for_tests.get_size() == 3
 
 
-def test_is_emty(list_for_tests):
-    assert list_for_tests.is_list_empty() == False
-
-
-"""Tests for ui.py"""
-# раздел в разработке :)
+def test_is_empty(list_for_tests):
+    assert not list_for_tests.is_empty()

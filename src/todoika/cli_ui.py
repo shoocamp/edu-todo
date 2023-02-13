@@ -4,15 +4,15 @@ from typing import Optional
 
 from rich.prompt import IntPrompt, Confirm, Prompt
 
-from core import Task
-from storage import SQLiteStorage, UserBuilder, TasksListBuilder
-from users import User
+from todoika.core import Task, TasksList
+from todoika.storage import SQLiteStorage, UserBuilder, TasksListBuilder
+from todoika.users import User
 
 
 class CLIHandler:
     def __init__(self, storage: SQLiteStorage):
         self.user: Optional[User] = None
-        self.current_list = None
+        self.current_list: Optional[TasksList] = None
         self.storage = storage
         self.user_builder = UserBuilder(storage)
         self.tasks_list_builder = TasksListBuilder(storage)
@@ -104,10 +104,11 @@ if __name__ == "__main__":
 
         try:
             if not handler.user:
-                init_cmd = IntPrompt.ask("Login (1) or Register (2)", choices=["1", "2"])
+                init_cmd = IntPrompt.ask("Login (1) or Register (2) or Quit (3)", choices=["1", "2", "3"])
                 cmd_mapping = {
                     1: handler.login,
-                    2: handler.register
+                    2: handler.register,
+                    3: sys.exit
                 }
                 cmd_mapping[init_cmd]()
                 continue
@@ -127,7 +128,6 @@ if __name__ == "__main__":
             elif main_menu_command == 6:
                 handler.show_with_status('done')
             elif main_menu_command == 7:
-                print("bye")
                 sys.exit(0)
         except KeyboardInterrupt:
             # `ctrl + c` - exit from sub-menu
