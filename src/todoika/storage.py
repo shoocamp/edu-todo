@@ -1,27 +1,71 @@
 import sqlite3
+from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Optional
 
-from core import Task, TasksList
-from users import User
+from todoika.core import Task, TasksList
+from todoika.users import User
 
 
-class SQLiteStorage:
+class Storage(ABC):
+
+    @abstractmethod
+    def create_tasks_list(self, user_id, description) -> int:
+        ...
+
+    @abstractmethod
+    def get_tasks_for_list_id(self, list_id):
+        ...
+
+    @abstractmethod
+    def update_task(self,
+                    task_id: int,
+                    description: Optional[str] = None,
+                    status: Optional[str] = None,
+                    due_date: Optional[datetime] = None):
+        ...
+
+    @abstractmethod
+    def add_task(self, user_id, list_id, description, status, due_date=None) -> int:
+        ...
+
+    @abstractmethod
+    def get_list(self, tasks_list_id):
+        ...
+
+    @abstractmethod
+    def get_user(self, user_id):
+        ...
+
+    @abstractmethod
+    def get_user_by_name(self, user_name: str):
+        ...
+
+    @abstractmethod
+    def create_new_user(self, name, password_md5) -> int:
+        ...
+
+    @abstractmethod
+    def set_user_default_list_id(self, user_id, list_id):
+        ...
+
+
+class SQLiteStorage(Storage):
     def __init__(self, db_name):
         self.con = sqlite3.connect(db_name)
 
     def create_tasks_list(self, user_id, description) -> int:
         cur = self.con.cursor()
         cur.execute(
-            f"""INSERT INTO lists (description, user_id) VALUES ("{description}", {user_id})"""
+            f"""INSERT INTO lists (description, user_id) VALUES ('{description}', {user_id})"""
         ).fetchall()
         self.con.commit()
         result = cur.execute("SELECT last_insert_rowid()").fetchone()
         return result[0]
 
-    def get_tasks_for_list_id(self, user_id, list_id):
+    def get_tasks_for_list_id(self, list_id):
         result = self.con.cursor().execute(
-            f"""SELECT * FROM tasks WHERE list_id={list_id} AND user_id={user_id}"""
+            f"""SELECT * FROM tasks WHERE list_id={list_id}"""
         ).fetchall()
         return result
 
@@ -31,8 +75,8 @@ class SQLiteStorage:
             f"""
             INSERT INTO tasks (description, status, created, due_date, notes, list_id, user_id)
                 VALUES (
-                "{description}",
-                "{status}",
+                '{description}',
+                '{status}',
                 {int(datetime.now().timestamp())},
                 {int(due_date.timestamp()) if due_date is not None else 'null'},
                 null,
@@ -51,7 +95,7 @@ class SQLiteStorage:
         # TODO: support all fields
         cur = self.con.cursor()
         cur.execute(
-            f"""UPDATE tasks SET description="{description}" WHERE id={task_id}"""
+            f"""UPDATE tasks SET description='{description}' WHERE id={task_id}"""
         ).fetchall()
         self.con.commit()
 
@@ -68,7 +112,7 @@ class SQLiteStorage:
         cur = self.con.cursor()
         result = cur.execute(
             f"""
-            SELECT * FROM users WHERE id={user_id}
+            SELECT id, name, default_list FROM users WHERE id={user_id}
             """
         ).fetchone()
         return result
@@ -77,7 +121,7 @@ class SQLiteStorage:
         cur = self.con.cursor()
         result = cur.execute(
             f"""
-            SELECT * FROM users WHERE name="{user_name}"
+            SELECT * FROM users WHERE name='{user_name}'
             """
         ).fetchone()
         return result
@@ -85,7 +129,7 @@ class SQLiteStorage:
     def create_new_user(self, name, password_md5) -> int:
         cur = self.con.cursor()
         cur.execute(
-            f"""INSERT INTO users (name, password_md5) VALUES ("{name}", "{password_md5}")"""
+            f"""INSERT INTO users (name, password_md5) VALUES ('{name}', '{password_md5}')"""
         ).fetchall()
         self.con.commit()
         result = cur.execute("SELECT last_insert_rowid()").fetchone()
@@ -106,7 +150,7 @@ class TasksListBuilder:
     def build(self, user_id: int, list_id: int) -> TasksList:
         list_db_id, description, _ = self.storage.get_list(list_id)
         task_list = TasksList(description, storage=self.storage, db_id=list_db_id, user_id=user_id)
-        related_tasks = self.storage.get_tasks_for_list_id(user_id, list_id)
+        related_tasks = self.storage.get_tasks_for_list_id(list_id)
         for task_db_id, description, status, created_ts, due_date_ts, _, _, _ in related_tasks:
             # TODO: proper init
             task = Task(description, storage=self.storage, db_id=task_db_id)
@@ -120,7 +164,7 @@ class UserBuilder:
         self.storage = storage
 
     def build_by_id(self, user_id: int) -> User:
-        user_id, user_name, _, default_list_id = self.storage.get_user(user_id)
+        user_id, user_name, default_list_id = self.storage.get_user(user_id)
         return User(user_id, user_name, default_list_id)
 
     def build_by_name(self, name: str) -> User:

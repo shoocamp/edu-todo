@@ -1,6 +1,6 @@
 # Todoika
 
-## How to run
+## How to run CLI UI
 
 - Create and activate venv:
 
@@ -23,6 +23,20 @@ sqlite3 todoika.db < scripts/init_db.sql
 
 - Run CLI UI:
 
-```bash 
-python cli_ui.py
+```bash
+PYTHONPATH=$PYTHONPATH:${PWD}/src python src/todoika/cli_ui.py
+```
+
+## How to run tests
+
+- Install dependencies:
+
+```bash
+pip install -r requirements_test.txt
+```
+
+- Run tests
+
+```bash
+pytest -vvv --cov-report term --cov=src
 ```
