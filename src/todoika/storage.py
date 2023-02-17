@@ -126,6 +126,15 @@ class SQLiteStorage(Storage):
         ).fetchone()
         return result
 
+    def get_password_by_name(self, user_name: str):  # добавил эту функцию, но что-то идет не так(
+        cur = self.con.cursor()
+        result = cur.execute(
+            f"""
+            SELECT password_md5 FROM users WHERE name='{user_name}'
+            """
+        ).fetchone()
+        return result[0]
+
     def create_new_user(self, name, password_md5) -> int:
         cur = self.con.cursor()
         cur.execute(

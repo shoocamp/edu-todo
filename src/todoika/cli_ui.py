@@ -20,13 +20,17 @@ class CLIHandler:
     def login(self):
         user_name = Prompt.ask('Enter your name')
         # TODO: check password
+        user_password = Prompt.ask('Enter your password')
+        if user_password != self.storage.get_password_by_name(user_name):  # это я "нахрапом" попытлся сделать верификацию. не вышло. заболела голова(
+            sys.exit()
         self.user = self.user_builder.build_by_name(user_name)
         self.current_list = self.tasks_list_builder.build(self.user.db_id, self.user.default_list_id)
 
     def register(self):
         user_name = Prompt.ask('Enter your name')
         # TODO: ask password
-        self.user = self.user_builder.build_new(user_name, "password")
+        user_password = Prompt.ask('Enter your password')  # пароль вроде в базу заносится
+        self.user = self.user_builder.build_new(user_name, user_password)
         self.current_list = self.tasks_list_builder.build(self.user.db_id, self.user.default_list_id)
 
     def create_task(self):
