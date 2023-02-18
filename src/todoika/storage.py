@@ -177,8 +177,8 @@ class UserBuilder:
         return User(user_id, user_name, default_list_id)
 
     def build_by_name(self, name: str) -> User:
-        user_id, user_name, _, default_list_id = self.storage.get_user_by_name(name)
-        return User(user_id, user_name, default_list_id)
+        user_id, user_name, password, default_list_id = self.storage.get_user_by_name(name)
+        return User(user_id, user_name, password, default_list_id)
 
     def build_new(self, username: str, password_md5: str) -> User:
         user_id = self.storage.create_new_user(username, password_md5)
