@@ -19,10 +19,9 @@ class CLIHandler:
         self.tasks_list_builder = TasksListBuilder(storage)
 
     def login(self):
-        user_name = Prompt.ask('Enter your name')
-        # TODO: check password
-        user_password = hashlib.md5(Prompt.ask('Enter your password').encode()).hexdigest()
-        if user_password != self.storage.get_password_by_name(user_name):
+        user_name = Prompt.ask('Enter your name: ')
+        password_hash = hashlib.md5(Prompt.ask('Enter your password: ', password=True).encode()).hexdigest()
+        if password_hash != self.storage.get_password_by_name(user_name):
             print('Wrong username or password')
             return False
         self.user = self.user_builder.build_by_name(user_name)
@@ -30,9 +29,8 @@ class CLIHandler:
 
     def register(self):
         user_name = Prompt.ask('Enter your name')
-        # TODO: ask password
-        user_password = hashlib.md5(Prompt.ask('Enter your password').encode()).hexdigest()
-        self.user = self.user_builder.build_new(user_name, user_password)
+        password_hash = hashlib.md5(Prompt.ask('Enter your password', password=True).encode()).hexdigest()
+        self.user = self.user_builder.build_new(user_name, password_hash)
         self.current_list = self.tasks_list_builder.build(self.user.db_id, self.user.default_list_id)
 
     def create_task(self):
