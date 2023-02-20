@@ -1,11 +1,11 @@
-import sys
 import hashlib
+import sys
 from datetime import datetime as dt
 from typing import Optional
 
 from rich.prompt import IntPrompt, Confirm, Prompt
 
-from todoika.core import Task, TasksList
+from todoika.core import TasksList
 from todoika.storage import SQLiteStorage, UserBuilder, TasksListBuilder
 from todoika.users import User
 
@@ -19,11 +19,11 @@ class CLIHandler:
         self.tasks_list_builder = TasksListBuilder(storage)
 
     def login(self):
-        user_name = Prompt.ask('Enter your name: ')
-        password_hash = hashlib.md5(Prompt.ask('Enter your password: ', password=True).encode()).hexdigest()
+        user_name = Prompt.ask('Enter your name')
+        password_hash = hashlib.md5(Prompt.ask('Enter your password', password=True).encode()).hexdigest()
         if password_hash != self.storage.get_password_by_name(user_name):
             print('Wrong username or password')
-            return False
+            return
         self.user = self.user_builder.build_by_name(user_name)
         self.current_list = self.tasks_list_builder.build(self.user.db_id, self.user.default_list_id)
 
@@ -35,19 +35,18 @@ class CLIHandler:
 
     def create_task(self):
         task_description = Prompt.ask('Task description')
-        task = Task(description=task_description)
+        due_date = None
 
         if Confirm.ask("Add due date?", default=False):
             due_date = Prompt.ask('Set due date (format YYYY-MM-DD, H:M)')
-            task.due_date = dt.strptime(due_date, '%Y-%m-%d, %H:%M')
+            due_date = dt.strptime(due_date, '%Y-%m-%d, %H:%M')
 
-        self.current_list.add_task(task)
+        self.current_list.add_task(task_description=task_description, due_date=due_date)
 
     def edit_description(self):
         task_id = self.get_task_id()
         new_description = Prompt.ask('New description')
-        self.current_list.edit_description(task_id, new_description)
-        print("Done")
+        self.current_list.edit_task_description(task_id, new_description)
 
     def edit_status(self):
         task_id = self.get_task_id()
@@ -81,21 +80,18 @@ class CLIHandler:
             "2: edit description",
             "3: edit status",
             "4: show active tasks",
-            f"5: show all tasks ({self.current_list.get_size()})",
+            f"5: show all tasks ({len(self.current_list)})",
             "6: show completed tasks",
             "7: quit\n"
         ]
-        command = IntPrompt.ask("\n".join(options), choices=["1", "2", "3", "4", "5", "6", "7"],
+        command = IntPrompt.ask("\n".join(options), choices=[str(opt) for opt in range(1, 8)],
                                 show_choices=False)
         return command
 
     def get_task_id(self):
         """printing of task list to choosing task & UI processing"""
         self.show_with_status(None, indexes=True)
-        choices = []
-        for t in range(int(len(self.current_list.tasks))):
-            choices.append(str(t + 1))
-        task_id = IntPrompt.ask('Pick a task \n', choices=choices, show_choices=False)
+        task_id = IntPrompt.ask('Pick a task \n', choices=[str(i) for i in range(1, len(self.current_list) + 1)], show_choices=False)
         return task_id - 1
 
 
