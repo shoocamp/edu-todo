@@ -9,7 +9,7 @@ from todoika.storage import SQLiteStorage, UserBuilder
 @pytest.fixture()
 def in_memory_storage():
     storage = SQLiteStorage(":memory:")
-    storage.con.executescript(open("../scripts/init_db.sql").read())
+    storage.con.executescript(open("scripts/init_db.sql").read())
     storage.con.commit()
     return storage
 
