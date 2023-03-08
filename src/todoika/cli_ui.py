@@ -6,12 +6,12 @@ from typing import Optional
 from rich.prompt import IntPrompt, Confirm, Prompt
 
 from todoika.core import Task, TasksList
-from todoika.storage import SQLiteStorage, UserBuilder, TasksListBuilder
+from todoika.storage import PSQLStorage, UserBuilder, TasksListBuilder
 from todoika.users import User
 
 
 class CLIHandler:
-    def __init__(self, storage: SQLiteStorage):
+    def __init__(self, storage: PSQLStorage):
         self.user: Optional[User] = None
         self.current_list: Optional[TasksList] = None
         self.storage = storage
@@ -100,8 +100,8 @@ class CLIHandler:
 
 
 if __name__ == "__main__":
-    sqlite_storage = SQLiteStorage("todoika.db")
-    handler = CLIHandler(sqlite_storage)
+    psql_storage = PSQLStorage()
+    handler = CLIHandler(psql_storage)
 
     while True:
         main_menu_command = None
