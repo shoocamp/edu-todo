@@ -40,16 +40,4 @@ pip install -r requirements_test.txt
 ```bash
 pytest -vvv --cov-report term --cov=src
 ```
-Сань я уже не помню шаги котоыре я делал пока настравиал постгрес(
-помню что поставил 14 версию кажется.... больше ниечего не помню. все как-то сумбурно было.
 
-ну и файл конфига я не стал пушать.
-
-to install the connector library in a virtual environment
-
-virtualenv env && source env/bin/activate
-pip install psycopg2-binary
-
-brew info postgresql
-use postgresql@14 instead of deprecated postgresql
-==> postgresql@14: stable 14.6 (bottled)

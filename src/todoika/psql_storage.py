@@ -86,8 +86,8 @@ def create_tables():
             for command in commands:
                 cursor.execute(command)
 
-    except Exception as _ex:
-        print('error', _ex)
+    except Exception as ex:
+        print('error', ex)
     finally:
         if connection:
             connection.close()
