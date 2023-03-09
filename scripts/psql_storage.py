@@ -82,7 +82,6 @@ def create_tables():
 
             print(f"Server version: {cursor.fetchone()}")
 
-        with connection.cursor() as cursor:
             for command in commands:
                 cursor.execute(command)
 

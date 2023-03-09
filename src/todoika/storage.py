@@ -201,7 +201,6 @@ class PSQLStorage(Storage):
             f"""SELECT * FROM tasks WHERE list_id={list_id}"""
         )
         result = cur.fetchall()
-        print(result)
         return result
 
     def add_task(self, user_id, list_id, description, status, due_date=None) -> int:
@@ -250,7 +249,6 @@ class PSQLStorage(Storage):
             """
         )
         result = cur.fetchone()
-        print(result)
         return result
 
     def get_user(self, user_id):
