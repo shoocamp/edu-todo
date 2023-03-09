@@ -11,8 +11,8 @@ class Task:
     def __init__(self, description: str,
                  due_date: Optional[datetime] = None,
                  db_id: Optional[int] = None,
-                 storage: Optional['Storage'] = None,
-                 status: Optional = "NEW"):
+                 storage: Optional['Storage'] = None):
+        self.status = "NEW"
 
         if description == "":
             raise ValueError("Description shouldn't be empty")
@@ -22,7 +22,6 @@ class Task:
         self.due_date = due_date
         self.storage = storage
         self.db_id = db_id
-        self.status = status
 
     def update_description(self, description: str):
         if description == "":

@@ -5,4 +5,4 @@ class User:
         self.default_list_id = default_list_id
 
     def __repr__(self):
-        return f"[{self.db_id}] {self.username}, default list: {self.default_list_id}"
+        return f"User({self.db_id}, {self.username}, {self.default_list_id}"
