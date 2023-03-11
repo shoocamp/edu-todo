@@ -1,5 +1,5 @@
 import psycopg2
-from config import host, user, password, db_name, port
+from src.todoika.config import host, user, password, db_name, port
 
 
 def create_tables():

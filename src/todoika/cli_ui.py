@@ -59,10 +59,17 @@ class CLIHandler:
 
         self.current_list.set_task_status(task_id, status_mapping[status_id])
 
+    def edit_due_date(self):
+        task_id = self.get_task_id()
+        new_date = Prompt.ask('Set new date (format YYYY-MM-DD, H:M)')
+        new_date_ts = dt.strptime(new_date, '%Y-%m-%d, %H:%M')
+        self.current_list.set_due_date(task_id, new_date_ts)
+
+
     def show_with_status(self, status, indexes=False):
         lines = []
         for i, t in enumerate(self.current_list.filter_tasks_by_status(status), start=1):
-            due_date = t.due_date.strftime("%d.%m.%y - %H.%M") if t.due_date is not None else ""
+            due_date = dt.fromtimestamp(t.due_date).strftime("%d.%m.%y - %H.%M") if t.due_date is not None else ""
             status = "☐" if t.status == "NEW" else "☑"
 
             if indexes:
@@ -79,12 +86,13 @@ class CLIHandler:
             "1: add new task",
             "2: edit description",
             "3: edit status",
-            "4: show active tasks",
-            f"5: show all tasks ({len(self.current_list)})",
-            "6: show completed tasks",
-            "7: quit\n"
+            "4: edit due date",
+            "5: show active tasks",
+            f"6: show all tasks ({len(self.current_list)})",
+            "7: show completed tasks",
+            "8: quit\n"
         ]
-        command = IntPrompt.ask("\n".join(options), choices=[str(opt) for opt in range(1, 8)],
+        command = IntPrompt.ask("\n".join(options), choices=[str(opt) for opt in range(1, 9)],
                                 show_choices=False)
         return command
 
@@ -122,12 +130,14 @@ if __name__ == "__main__":
             elif main_menu_command == 3:
                 handler.edit_status()
             elif main_menu_command == 4:
-                handler.show_with_status('new')
+                handler.edit_due_date()
             elif main_menu_command == 5:
-                handler.show_with_status(None)
+                handler.show_with_status('new')
             elif main_menu_command == 6:
-                handler.show_with_status('done')
+                handler.show_with_status(None)
             elif main_menu_command == 7:
+                handler.show_with_status('done')
+            elif main_menu_command == 8:
                 sys.exit(0)
         except KeyboardInterrupt:
             # `ctrl + c` - exit from sub-menu

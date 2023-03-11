@@ -110,7 +110,7 @@ class SQLiteStorage(Storage):
             ).fetchall()
         if due_date:
             cur.execute(
-                f"""UPDATE tasks SET due_date='{due_date.timestamp()}' WHERE id={task_id}"""
+                f"""UPDATE tasks SET due_date='{int(due_date.timestamp())}' WHERE id={task_id}"""
             ).fetchall()
 
         self.con.commit()
@@ -237,7 +237,7 @@ class PSQLStorage(Storage):
             )
         if due_date:
             cur.execute(
-                f"""UPDATE tasks SET due_date='{due_date.timestamp()}' WHERE id={task_id}"""
+                f"""UPDATE tasks SET due_date='{int(due_date.timestamp())}' WHERE id={task_id}"""
             )
         self.con.commit()
 
