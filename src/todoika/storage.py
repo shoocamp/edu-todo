@@ -55,6 +55,10 @@ class Storage(ABC):
     def get_task_by_id(self, task_id: int):
         ...
 
+    @abstractmethod
+    def get_password_by_name(self, user_name: str):
+        ...
+
 
 class SQLiteStorage(Storage):
     def __init__(self, db_name: str):
@@ -308,7 +312,7 @@ class PSQLStorage(Storage):
 
 
 class TasksListBuilder:
-    def __init__(self, storage: PSQLStorage):
+    def __init__(self, storage: Storage):
         self.__storage = storage
 
     def build(self, user_id: int, list_id: int) -> TasksList:
@@ -318,7 +322,7 @@ class TasksListBuilder:
 
 
 class UserBuilder:
-    def __init__(self, storage: PSQLStorage):
+    def __init__(self, storage: Storage):
         self.__storage = storage
 
     def build_by_id(self, user_id: int) -> User:

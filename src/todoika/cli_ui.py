@@ -6,12 +6,13 @@ from typing import Optional
 from rich.prompt import IntPrompt, Confirm, Prompt
 
 from todoika.core import TasksList
-from todoika.storage import SQLiteStorage, UserBuilder, TasksListBuilder, PSQLStorage
+from todoika.storage import Storage, SQLiteStorage, UserBuilder, TasksListBuilder, PSQLStorage
 from todoika.users import User
+import config
 
 
 class CLIHandler:
-    def __init__(self, storage: PSQLStorage):
+    def __init__(self, storage: Storage):
         self.user: Optional[User] = None
         self.current_list: Optional[TasksList] = None
         self.storage = storage
@@ -65,11 +66,10 @@ class CLIHandler:
         new_date_ts = dt.strptime(new_date, '%Y-%m-%d, %H:%M')
         self.current_list.set_due_date(task_id, new_date_ts)
 
-
     def show_with_status(self, status, indexes=False):
         lines = []
         for i, t in enumerate(self.current_list.filter_tasks_by_status(status), start=1):
-            due_date = dt.fromtimestamp(t.due_date).strftime("%d.%m.%y - %H.%M") if t.due_date is not None else ""
+            due_date = t.due_date.strftime("%d.%m.%y - %H.%M") if t.due_date is not None else ""
             status = "☐" if t.status == "NEW" else "☑"
 
             if indexes:
@@ -99,13 +99,20 @@ class CLIHandler:
     def get_task_id(self):
         """printing of task list to choosing task & UI processing"""
         self.show_with_status(None, indexes=True)
-        task_id = IntPrompt.ask('Pick a task \n', choices=[str(i) for i in range(1, len(self.current_list) + 1)], show_choices=False)
+        task_id = IntPrompt.ask('Pick a task \n', choices=[str(i) for i in range(1, len(self.current_list) + 1)],
+                                show_choices=False)
         return task_id - 1
 
 
 if __name__ == "__main__":
-    psql_storage = PSQLStorage()
-    handler = CLIHandler(psql_storage)
+    if config.storage == "PSQL":
+        active_storage = PSQLStorage()
+    elif config.storage == "SQLite":
+        active_storage = SQLiteStorage("todoika.db")
+    else:
+        raise RuntimeError(f"Unknown storage:{config.storage}")
+
+    handler = CLIHandler(active_storage)
 
     while True:
         main_menu_command = None
