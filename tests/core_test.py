@@ -1,9 +1,10 @@
 from datetime import datetime as dt, timedelta
 
 import pytest
+import toml
 
 from todoika.core import Task, TasksList
-from todoika.storage import SQLiteStorage, UserBuilder
+from todoika.storage import SQLiteStorage, UserBuilder, PSQLStorage
 
 
 @pytest.fixture()
@@ -21,8 +22,34 @@ def user(in_memory_storage):
 
 
 @pytest.fixture()
+def user_psql(in_memory_psql_storage):
+    user_builder = UserBuilder(in_memory_psql_storage)
+    return user_builder.build_new('test_user', 'test_password')
+
+
+@pytest.fixture()
+def in_memory_psql_storage():
+    conf = toml.load('./src/todoika/psql_config.toml')
+    storage = PSQLStorage(host=conf['config']['host'],
+                          user=conf['config']['user'],
+                          password=conf['config']['password'],
+                          db_name=conf['config']['db_name'],
+                          port=conf['config']['port'])
+    return storage
+
+
+@pytest.fixture()
 def default_todo_list(in_memory_storage, user):
     default_list = TasksList('Test Default', db_id=user.default_list_id, storage=in_memory_storage, user_id=user.db_id)
+    default_list.add_task('Test task 1')
+    default_list.add_task('Test task 2')
+    default_list.add_task('Test task 3')
+    return default_list
+
+
+@pytest.fixture()
+def default_todo_list(in_memory_psql_storage, user_psql):
+    default_list = TasksList('Test Default', db_id=user_psql.default_list_id, storage=in_memory_psql_storage, user_id=user_psql.db_id)
     default_list.add_task('Test task 1')
     default_list.add_task('Test task 2')
     default_list.add_task('Test task 3')
@@ -183,8 +210,14 @@ def test_is_empty(default_todo_list):
     assert not default_todo_list.is_empty()
 
 
-def test_build_list_from_db(in_memory_storage, user, default_todo_list):
-    list_db_id, description, _ = in_memory_storage.get_list(user.default_list_id)
-    related_tasks = in_memory_storage.get_tasks_for_list_id(list_db_id)
-    actual = TasksList.from_db(description, in_memory_storage, list_db_id, user.db_id, related_tasks)
+# def test_build_list_from_db(in_memory_storage, user, default_todo_list):
+#     list_db_id, description, _ = in_memory_storage.get_list(user.default_list_id)
+#     related_tasks = in_memory_storage.get_tasks_for_list_id(list_db_id)
+#     actual = TasksList.from_db(description, in_memory_storage, list_db_id, user.db_id, related_tasks)
+#     assert actual._tasks == default_todo_list._tasks
+
+def test_build_list_from_psql_db(in_memory_psql_storage, user_psql, default_todo_list):
+    list_db_id, description, _ = in_memory_psql_storage.get_list(user_psql.default_list_id)
+    related_tasks = in_memory_psql_storage.get_tasks_for_list_id(list_db_id)
+    actual = TasksList.from_db(description, in_memory_psql_storage, list_db_id, user_psql.db_id, related_tasks)
     assert actual._tasks == default_todo_list._tasks

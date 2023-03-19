@@ -6,7 +6,6 @@ from typing import Optional
 
 from todoika.core import TasksList
 from todoika.users import User
-from config import host, user, password, db_name, port
 
 
 class Storage(ABC):
@@ -56,7 +55,7 @@ class Storage(ABC):
         ...
 
     @abstractmethod
-    def get_password_by_name(self, user_name: str):
+    def get_md5hash_by_name(self, user_name: str):
         ...
 
 
@@ -146,7 +145,7 @@ class SQLiteStorage(Storage):
         ).fetchone()
         return result
 
-    def get_password_by_name(self, user_name: str):
+    def get_md5hash_by_name(self, user_name: str):
         cur = self.con.cursor()
         result = cur.execute(
             f"""
@@ -182,7 +181,7 @@ class SQLiteStorage(Storage):
 
 
 class PSQLStorage(Storage):
-    def __init__(self):
+    def __init__(self, host, user, password, db_name, port):
         self.con = psycopg2.connect(
             host=host,
             user=user,
@@ -275,7 +274,7 @@ class PSQLStorage(Storage):
         result = cur.fetchone()
         return result
 
-    def get_password_by_name(self, user_name: str):
+    def get_md5hash_by_name(self, user_name: str):
         cur = self.con.cursor()
         cur.execute(
             f"""

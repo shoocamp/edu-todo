@@ -1,5 +1,7 @@
 import hashlib
 import sys
+import argparse
+import toml
 from datetime import datetime as dt
 from typing import Optional
 
@@ -8,7 +10,6 @@ from rich.prompt import IntPrompt, Confirm, Prompt
 from todoika.core import TasksList
 from todoika.storage import Storage, SQLiteStorage, UserBuilder, TasksListBuilder, PSQLStorage
 from todoika.users import User
-import config
 
 
 class CLIHandler:
@@ -22,7 +23,7 @@ class CLIHandler:
     def login(self):
         user_name = Prompt.ask('Enter your name')
         password_hash = hashlib.md5(Prompt.ask('Enter your password', password=True).encode()).hexdigest()
-        if password_hash != self.storage.get_password_by_name(user_name):
+        if password_hash != self.storage.get_md5hash_by_name(user_name):
             print('Wrong username or password')
             return
         self.user = self.user_builder.build_by_name(user_name)
@@ -39,9 +40,7 @@ class CLIHandler:
         due_date = None
 
         if Confirm.ask("Add due date?", default=False):
-            due_date = Prompt.ask('Set due date (format YYYY-MM-DD, H:M)')
-            due_date = dt.strptime(due_date, '%Y-%m-%d, %H:%M')
-
+            due_date = self.date_str_to_dt('Set due date')
         self.current_list.add_task(task_description=task_description, due_date=due_date)
 
     def edit_description(self):
@@ -60,11 +59,15 @@ class CLIHandler:
 
         self.current_list.set_task_status(task_id, status_mapping[status_id])
 
+    def date_str_to_dt(self, prompt: str):
+        date = Prompt.ask(f'{prompt} (format YYYY-MM-DD, H:M)')
+        date_ts = dt.strptime(date, '%Y-%m-%d, %H:%M')
+        return date_ts
+
     def edit_due_date(self):
         task_id = self.get_task_id()
-        new_date = Prompt.ask('Set new date (format YYYY-MM-DD, H:M)')
-        new_date_ts = dt.strptime(new_date, '%Y-%m-%d, %H:%M')
-        self.current_list.set_due_date(task_id, new_date_ts)
+        new_date = self.date_str_to_dt('Set new date')
+        self.current_list.set_due_date(task_id, new_date)
 
     def show_with_status(self, status, indexes=False):
         lines = []
@@ -105,12 +108,23 @@ class CLIHandler:
 
 
 if __name__ == "__main__":
-    if config.storage == "PSQL":
-        active_storage = PSQLStorage()
-    elif config.storage == "SQLite":
-        active_storage = SQLiteStorage("todoika.db")
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config', help='Route to config file')
+    args: argparse.Namespace = parser.parse_args()
+
+    conf = toml.load(args.config)
+
+    if conf['config']['db_type'] == 'PSQL':
+        active_storage = PSQLStorage(host=conf['config']['host'],
+                                     user=conf['config']['user'],
+                                     password=conf['config']['password'],
+                                     db_name=conf['config']['db_name'],
+                                     port=conf['config']['port'])
+    elif conf['config']['db_type'] == 'SQLite':
+        active_storage = SQLiteStorage(conf['config']['name'])
     else:
-        raise RuntimeError(f"Unknown storage:{config.storage}")
+        raise RuntimeError(f"Unknown storage:{conf['config']['db_type']}")
 
     handler = CLIHandler(active_storage)
 
