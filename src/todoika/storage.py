@@ -272,6 +272,7 @@ class PSQLStorage(Storage):
             """
         )
         result = cur.fetchone()
+
         return result
 
     def get_md5hash_by_name(self, user_name: str):

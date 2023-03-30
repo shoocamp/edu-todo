@@ -40,7 +40,7 @@ class CLIHandler:
         due_date = None
 
         if Confirm.ask("Add due date?", default=False):
-            due_date = self.date_str_to_dt('Set due date')
+            due_date = CLIHandler.ask_date('Set due date')
         self.current_list.add_task(task_description=task_description, due_date=due_date)
 
     def edit_description(self):
@@ -59,14 +59,15 @@ class CLIHandler:
 
         self.current_list.set_task_status(task_id, status_mapping[status_id])
 
-    def date_str_to_dt(self, prompt: str):
+    @classmethod
+    def ask_date(cls, prompt: str) -> dt:
         date = Prompt.ask(f'{prompt} (format YYYY-MM-DD, H:M)')
         date_ts = dt.strptime(date, '%Y-%m-%d, %H:%M')
         return date_ts
 
     def edit_due_date(self):
         task_id = self.get_task_id()
-        new_date = self.date_str_to_dt('Set new date')
+        new_date = CLIHandler.ask_date('Set new date')
         self.current_list.set_due_date(task_id, new_date)
 
     def show_with_status(self, status, indexes=False):
@@ -110,7 +111,7 @@ class CLIHandler:
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', help='Route to config file')
+    parser.add_argument('--config', help='Path to config file')
     args: argparse.Namespace = parser.parse_args()
 
     conf = toml.load(args.config)

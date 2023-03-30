@@ -1,5 +1,5 @@
 import psycopg2
-from src.todoika.config import host, user, password, db_name, port
+import toml
 
 
 def create_tables():
@@ -65,12 +65,13 @@ def create_tables():
     )
 
     try:
+        conf = toml.load('../src/todoika/psql_config.toml')
         connection = psycopg2.connect(
-            host=host,
-            user=user,
-            password=password,
-            database=db_name,
-            port=port
+            host=conf['config']['host'],
+            user=conf['config']['user'],
+            password=conf['config']['password'],
+            dbname=conf['config']['db_name'],
+            port=conf['config']['port']
 
         )
         connection.autocommit = True
