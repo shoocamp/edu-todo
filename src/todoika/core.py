@@ -94,10 +94,10 @@ class TasksList:
             task = Task(description,
                         storage=storage,
                         db_id=task_db_id,
-                        due_date=datetime.fromtimestamp(due_date_ts),
                         status=status)
+            if due_date_ts is not None:
+                task.due_date = datetime.fromtimestamp(due_date_ts)
             lst._tasks.append(task)
-
         return lst
 
     def add_task(self, task_description: str, due_date: Optional[datetime] = None) -> Task:
