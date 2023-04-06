@@ -1,8 +1,10 @@
+import argparse
+
 import psycopg2
 import toml
 
 
-def create_tables():
+def create_tables(conf):
     commands = (
         """
         DROP TABLE IF EXISTS lists CASCADE;
@@ -65,7 +67,7 @@ def create_tables():
     )
 
     try:
-        conf = toml.load('../src/todoika/psql_config.toml')
+        # conf = toml.load('../src/todoika/psql_config.toml')
         connection = psycopg2.connect(
             host=conf['config']['host'],
             user=conf['config']['user'],
@@ -94,4 +96,9 @@ def create_tables():
             print("PSQL conn closed")
 
 
-create_tables()
+parser = argparse.ArgumentParser()
+parser.add_argument('--config', help='Path to config file')
+args: argparse.Namespace = parser.parse_args()
+conf = toml.load(args.config)
+
+create_tables(conf)

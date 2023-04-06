@@ -29,7 +29,7 @@ def user_psql(psql_storage):
 
 @pytest.fixture()
 def psql_storage():
-    conf = toml.load('./src/todoika/psql_config.toml')
+    conf = toml.load('./src/todoika/psql_config_tests.toml')
     storage = PSQLStorage(host=conf['config']['host'],
                           user=conf['config']['user'],
                           password=conf['config']['password'],
