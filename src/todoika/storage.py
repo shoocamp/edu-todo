@@ -1,4 +1,5 @@
 import sqlite3
+import psycopg2
 from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Optional
@@ -51,6 +52,10 @@ class Storage(ABC):
 
     @abstractmethod
     def get_task_by_id(self, task_id: int):
+        ...
+
+    @abstractmethod
+    def get_md5hash_by_name(self, user_name: str):
         ...
 
 
@@ -108,7 +113,7 @@ class SQLiteStorage(Storage):
             ).fetchall()
         if due_date:
             cur.execute(
-                f"""UPDATE tasks SET due_date='{due_date.timestamp()}' WHERE id={task_id}"""
+                f"""UPDATE tasks SET due_date='{int(due_date.timestamp())}' WHERE id={task_id}"""
             ).fetchall()
 
         self.con.commit()
@@ -140,7 +145,7 @@ class SQLiteStorage(Storage):
         ).fetchone()
         return result
 
-    def get_password_by_name(self, user_name: str):
+    def get_md5hash_by_name(self, user_name: str):
         cur = self.con.cursor()
         result = cur.execute(
             f"""
@@ -175,8 +180,139 @@ class SQLiteStorage(Storage):
         return result
 
 
+class PSQLStorage(Storage):
+    def __init__(self, host, user, password, db_name, port):
+        self.con = psycopg2.connect(
+            host=host,
+            user=user,
+            password=password,
+            database=db_name,
+            port=port
+        )
+
+    def create_tasks_list(self, user_id, description) -> int:
+        cur = self.con.cursor()
+        cur.execute(
+            f"""INSERT INTO lists (description, user_id) VALUES ('{description}', {user_id}) RETURNING id"""
+        )
+        self.con.commit()
+        return cur.fetchone()[0]
+
+    def get_tasks_for_list_id(self, list_id):
+        cur = self.con.cursor()
+        cur.execute(
+            f"""SELECT * FROM tasks WHERE list_id={list_id}"""
+        )
+        result = cur.fetchall()
+        return result
+
+    def add_task(self, user_id, list_id, description, status, due_date=None) -> int:
+        cur = self.con.cursor()
+        cur.execute(
+            f"""
+            INSERT INTO tasks (description, status, created, due_date, notes, list_id, user_id)
+                VALUES (
+                '{description}',
+                '{status}',
+                {int(datetime.now().timestamp())},
+                {int(due_date.timestamp()) if due_date is not None else 'null'},
+                null,
+                {list_id},
+                {user_id})
+                RETURNING id
+             """)
+        self.con.commit()
+        return cur.fetchone()[0]
+
+    def update_task(self,
+                    task_id: int,
+                    description: Optional[str] = None,
+                    status: Optional[str] = None,
+                    due_date: Optional[datetime] = None):
+        cur = self.con.cursor()
+        if description:
+            cur.execute(
+                f"""UPDATE tasks SET description='{description}' WHERE id={task_id}"""
+            )
+        if status:
+            cur.execute(
+                f"""UPDATE tasks SET status='{status}' WHERE id={task_id}"""
+            )
+        if due_date:
+            cur.execute(
+                f"""UPDATE tasks SET due_date='{int(due_date.timestamp())}' WHERE id={task_id}"""
+            )
+        self.con.commit()
+
+    def get_list(self, tasks_list_id):
+        cur = self.con.cursor()
+        cur.execute(
+            f"""
+            SELECT * FROM lists WHERE id={tasks_list_id}
+            """
+        )
+        result = cur.fetchone()
+        return result
+
+    def get_user(self, user_id):
+        cur = self.con.cursor()
+        cur.execute(
+            f"""
+            SELECT id, name, default_list FROM users WHERE id={user_id}
+            """
+        )
+        result = cur.fetchone()
+        return result
+
+    def get_user_by_name(self, user_name: str):
+        cur = self.con.cursor()
+        cur.execute(
+            f"""
+            SELECT * FROM users WHERE name='{user_name}'
+            """
+        )
+        result = cur.fetchone()
+
+        return result
+
+    def get_md5hash_by_name(self, user_name: str):
+        cur = self.con.cursor()
+        cur.execute(
+            f"""
+            SELECT password_md5 FROM users WHERE name='{user_name}'
+            """
+        )
+        result = cur.fetchone()
+        return result[0]
+
+    def create_new_user(self, name, password_md5) -> int:
+        cur = self.con.cursor()
+        cur.execute(
+            f"""INSERT INTO users (name, password_md5) VALUES ('{name}', '{password_md5}') RETURNING id"""
+        )
+        self.con.commit()
+        return cur.fetchone()[0]
+
+    def set_user_default_list_id(self, user_id, list_id):
+        cur = self.con.cursor()
+        cur.execute(
+            f"""UPDATE users SET default_list={list_id} WHERE id={user_id}"""
+        )
+        self.con.commit()
+
+    def get_task_by_id(self, task_id: int) -> tuple:
+        cur = self.con.cursor()
+        cur.execute(
+            f"""
+            SELECT * FROM tasks WHERE id={task_id}
+            """
+        )
+        result = cur.fetchone()
+        return result
+
+
 class TasksListBuilder:
-    def __init__(self, storage: SQLiteStorage):
+    def __init__(self, storage: Storage):
         self.__storage = storage
 
     def build(self, user_id: int, list_id: int) -> TasksList:
@@ -186,7 +322,7 @@ class TasksListBuilder:
 
 
 class UserBuilder:
-    def __init__(self, storage: SQLiteStorage):
+    def __init__(self, storage: Storage):
         self.__storage = storage
 
     def build_by_id(self, user_id: int) -> User:

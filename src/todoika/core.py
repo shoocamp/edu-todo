@@ -12,8 +12,9 @@ class Task:
                  description: str,
                  due_date: Optional[datetime] = None,
                  db_id: Optional[int] = None,
-                 storage: Optional['Storage'] = None):
-        self._status = "NEW"
+                 storage: Optional['Storage'] = None,
+                 status: [str] = "NEW"):
+        self._status = status
         self._created = datetime.now()
         self._due_date = due_date
         self.__storage = storage
@@ -63,7 +64,7 @@ class Task:
                 f"storage={self.__storage}, status={self._status}), created={self._created}")
 
     def __str__(self):
-        return f"{self._status:5}{self._description}\t{self.due_date if self.due_date else ''}"
+        return f"{self._db_id}{self._status:5}{self._description}\t{self.due_date if self.due_date else ''}"
 
     def __eq__(self, other):
         return (self.description == other.description and
@@ -72,7 +73,10 @@ class Task:
 
 
 class TasksList:
-    def __init__(self, description: str, db_id: Optional[int] = None, storage: Optional['Storage'] = None, user_id: Optional[int] = None):
+    def __init__(self,
+                 description: str, db_id: Optional[int] = None,
+                 storage: Optional['Storage'] = None,
+                 user_id: Optional[int] = None):
         self._description = description
         self._tasks: list[Task] = []
 
@@ -87,9 +91,13 @@ class TasksList:
     def from_db(cls, description: str, storage: 'Storage', db_id: int, user_id: int, tasks: list[tuple]):
         lst = cls(description, db_id, storage, user_id)
         for task_db_id, description, status, created_ts, due_date_ts, _, _, _ in tasks:
-            task = Task(description, storage=storage, db_id=task_db_id)
+            task = Task(description,
+                        storage=storage,
+                        db_id=task_db_id,
+                        status=status)
+            if due_date_ts is not None:
+                task.due_date = datetime.fromtimestamp(due_date_ts)
             lst._tasks.append(task)
-
         return lst
 
     def add_task(self, task_description: str, due_date: Optional[datetime] = None) -> Task:
@@ -120,6 +128,10 @@ class TasksList:
         task = self.get_task_by_id(task_id)
         task.status = new_status
 
+    def set_due_date(self, task_id: int, new_date: datetime):
+        task = self.get_task_by_id(task_id)
+        task.due_date = new_date
+
     def filter_tasks_by_status(self, status: Optional[str]) -> list[Task]:
         if status is None:
             return self._tasks
@@ -141,3 +153,7 @@ class TasksList:
 
     def is_empty(self) -> bool:
         return len(self._tasks) == 0
+
+    @property
+    def tasks(self):
+        return self._tasks

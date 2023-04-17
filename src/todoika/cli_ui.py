@@ -1,17 +1,19 @@
 import hashlib
 import sys
+import argparse
+import toml
 from datetime import datetime as dt
 from typing import Optional
 
 from rich.prompt import IntPrompt, Confirm, Prompt
 
 from todoika.core import TasksList
-from todoika.storage import SQLiteStorage, UserBuilder, TasksListBuilder
+from todoika.storage import Storage, SQLiteStorage, UserBuilder, TasksListBuilder, PSQLStorage
 from todoika.users import User
 
 
 class CLIHandler:
-    def __init__(self, storage: SQLiteStorage):
+    def __init__(self, storage: Storage):
         self.user: Optional[User] = None
         self.current_list: Optional[TasksList] = None
         self.storage = storage
@@ -21,7 +23,7 @@ class CLIHandler:
     def login(self):
         user_name = Prompt.ask('Enter your name')
         password_hash = hashlib.md5(Prompt.ask('Enter your password', password=True).encode()).hexdigest()
-        if password_hash != self.storage.get_password_by_name(user_name):
+        if password_hash != self.storage.get_md5hash_by_name(user_name):
             print('Wrong username or password')
             return
         self.user = self.user_builder.build_by_name(user_name)
@@ -38,9 +40,7 @@ class CLIHandler:
         due_date = None
 
         if Confirm.ask("Add due date?", default=False):
-            due_date = Prompt.ask('Set due date (format YYYY-MM-DD, H:M)')
-            due_date = dt.strptime(due_date, '%Y-%m-%d, %H:%M')
-
+            due_date = CLIHandler.ask_date('Set due date')
         self.current_list.add_task(task_description=task_description, due_date=due_date)
 
     def edit_description(self):
@@ -58,6 +58,17 @@ class CLIHandler:
         }
 
         self.current_list.set_task_status(task_id, status_mapping[status_id])
+
+    @classmethod
+    def ask_date(cls, prompt: str) -> dt:
+        date = Prompt.ask(f'{prompt} (format YYYY-MM-DD, H:M)')
+        date_ts = dt.strptime(date, '%Y-%m-%d, %H:%M')
+        return date_ts
+
+    def edit_due_date(self):
+        task_id = self.get_task_id()
+        new_date = CLIHandler.ask_date('Set new date')
+        self.current_list.set_due_date(task_id, new_date)
 
     def show_with_status(self, status, indexes=False):
         lines = []
@@ -79,25 +90,44 @@ class CLIHandler:
             "1: add new task",
             "2: edit description",
             "3: edit status",
-            "4: show active tasks",
-            f"5: show all tasks ({len(self.current_list)})",
-            "6: show completed tasks",
-            "7: quit\n"
+            "4: edit due date",
+            "5: show active tasks",
+            f"6: show all tasks ({len(self.current_list)})",
+            "7: show completed tasks",
+            "8: quit\n"
         ]
-        command = IntPrompt.ask("\n".join(options), choices=[str(opt) for opt in range(1, 8)],
+        command = IntPrompt.ask("\n".join(options), choices=[str(opt) for opt in range(1, 9)],
                                 show_choices=False)
         return command
 
     def get_task_id(self):
         """printing of task list to choosing task & UI processing"""
         self.show_with_status(None, indexes=True)
-        task_id = IntPrompt.ask('Pick a task \n', choices=[str(i) for i in range(1, len(self.current_list) + 1)], show_choices=False)
+        task_id = IntPrompt.ask('Pick a task \n', choices=[str(i) for i in range(1, len(self.current_list) + 1)],
+                                show_choices=False)
         return task_id - 1
 
 
 if __name__ == "__main__":
-    sqlite_storage = SQLiteStorage("todoika.db")
-    handler = CLIHandler(sqlite_storage)
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config', help='Path to config file')
+    args: argparse.Namespace = parser.parse_args()
+
+    conf = toml.load(args.config)
+
+    if conf['database']['db_type'] == 'PSQL':
+        active_storage = PSQLStorage(host=conf['database']['host'],
+                                     user=conf['database']['user'],
+                                     password=conf['database']['password'],
+                                     db_name=conf['database']['db_name'],
+                                     port=conf['database']['port'])
+    elif conf['database']['db_type'] == 'SQLite':
+        active_storage = SQLiteStorage(conf['database']['name'])
+    else:
+        raise RuntimeError(f"Unknown storage:{conf['database']['db_type']}")
+
+    handler = CLIHandler(active_storage)
 
     while True:
         main_menu_command = None
@@ -122,12 +152,14 @@ if __name__ == "__main__":
             elif main_menu_command == 3:
                 handler.edit_status()
             elif main_menu_command == 4:
-                handler.show_with_status('new')
+                handler.edit_due_date()
             elif main_menu_command == 5:
-                handler.show_with_status(None)
+                handler.show_with_status('new')
             elif main_menu_command == 6:
-                handler.show_with_status('done')
+                handler.show_with_status(None)
             elif main_menu_command == 7:
+                handler.show_with_status('done')
+            elif main_menu_command == 8:
                 sys.exit(0)
         except KeyboardInterrupt:
             # `ctrl + c` - exit from sub-menu

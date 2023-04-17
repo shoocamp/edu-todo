@@ -1,0 +1,6 @@
+storage = "PSQL"
+host = "127.0.0.1"
+user = "sergeyzaitsev"
+password = "edu-todo-serg"
+db_name = "szdb"
+port = "5432"
