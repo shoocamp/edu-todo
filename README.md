@@ -40,7 +40,7 @@ pip install -r requirements_test.txt
 ```bash
 pytest -vvv --cov-report term --cov=src
 ```
-- To empty DB (run from root)
+- To re-init DB (run from root)
 ```bash
-python scripts/psql_storage.py --config ./src/todoika/psql_config.toml
+python scripts/psql_storage.py --config config.toml
 ```

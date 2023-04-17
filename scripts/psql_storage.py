@@ -67,13 +67,12 @@ def create_tables(conf):
     )
 
     try:
-        # conf = toml.load('../src/todoika/psql_config.toml')
         connection = psycopg2.connect(
-            host=conf['config']['host'],
-            user=conf['config']['user'],
-            password=conf['config']['password'],
-            dbname=conf['config']['db_name'],
-            port=conf['config']['port']
+            host=conf['database']['host'],
+            user=conf['database']['user'],
+            password=conf['database']['password'],
+            dbname=conf['database']['db_name'],
+            port=conf['database']['port']
 
         )
         connection.autocommit = True
@@ -96,9 +95,10 @@ def create_tables(conf):
             print("PSQL conn closed")
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--config', help='Path to config file')
-args: argparse.Namespace = parser.parse_args()
-conf = toml.load(args.config)
+if __name__ == "main":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config', help='Path to config file')
+    args: argparse.Namespace = parser.parse_args()
+    conf = toml.load(args.config)
 
-create_tables(conf)
+    create_tables(conf)

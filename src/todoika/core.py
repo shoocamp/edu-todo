@@ -153,3 +153,7 @@ class TasksList:
 
     def is_empty(self) -> bool:
         return len(self._tasks) == 0
+
+    @property
+    def tasks(self):
+        return self._tasks

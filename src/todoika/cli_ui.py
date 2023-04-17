@@ -116,16 +116,16 @@ if __name__ == "__main__":
 
     conf = toml.load(args.config)
 
-    if conf['config']['db_type'] == 'PSQL':
-        active_storage = PSQLStorage(host=conf['config']['host'],
-                                     user=conf['config']['user'],
-                                     password=conf['config']['password'],
-                                     db_name=conf['config']['db_name'],
-                                     port=conf['config']['port'])
-    elif conf['config']['db_type'] == 'SQLite':
-        active_storage = SQLiteStorage(conf['config']['name'])
+    if conf['database']['db_type'] == 'PSQL':
+        active_storage = PSQLStorage(host=conf['database']['host'],
+                                     user=conf['database']['user'],
+                                     password=conf['database']['password'],
+                                     db_name=conf['database']['db_name'],
+                                     port=conf['database']['port'])
+    elif conf['database']['db_type'] == 'SQLite':
+        active_storage = SQLiteStorage(conf['database']['name'])
     else:
-        raise RuntimeError(f"Unknown storage:{conf['config']['db_type']}")
+        raise RuntimeError(f"Unknown storage:{conf['database']['db_type']}")
 
     handler = CLIHandler(active_storage)
 
