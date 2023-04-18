@@ -24,7 +24,7 @@ sqlite3 todoika.db < scripts/init_db.sql
 - Run CLI UI:
 
 ```bash
-PYTHONPATH=$PYTHONPATH:${PWD}/src python src/todoika/cli_ui.py
+PYTHONPATH=$PYTHONPATH:${PWD}/src python src/todoika/cli_ui.py --config config.toml
 ```
 
 ## How to run tests
@@ -43,4 +43,9 @@ pytest -vvv --cov-report term --cov=src
 - To re-init DB (run from root)
 ```bash
 python scripts/psql_storage.py --config config.toml
+```
+
+- To reload uvicorn server
+```bash
+uvicorn todoika.server:app --reload
 ```

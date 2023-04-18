@@ -276,14 +276,19 @@ class PSQLStorage(Storage):
         return result
 
     def get_md5hash_by_name(self, user_name: str):
-        cur = self.con.cursor()
-        cur.execute(
-            f"""
-            SELECT password_md5 FROM users WHERE name='{user_name}'
-            """
-        )
-        result = cur.fetchone()
-        return result[0]
+        try:
+            cur = self.con.cursor()
+            cur.execute(
+                f"""
+                SELECT password_md5 FROM users WHERE name='{user_name}'
+                """
+            )
+            result = cur.fetchone()
+            return result[0]
+        except TypeError as e:
+            print(e)
+        return "just some string to have not Nonetype..."
+
 
     def create_new_user(self, name, password_md5) -> int:
         cur = self.con.cursor()
@@ -308,6 +313,26 @@ class PSQLStorage(Storage):
             """
         )
         result = cur.fetchone()
+        return result
+
+    def get_tasks_by_status(self, list_id: int, status: Optional[str] = None) -> tuple:
+        if status:
+            cur = self.con.cursor()
+            cur.execute(
+                f"""
+                   SELECT * FROM tasks WHERE list_id={list_id} and status='{status}'
+                   """
+            )
+            result = cur.fetchall()
+        else:
+            cur = self.con.cursor()
+            cur.execute(
+                f"""
+                   SELECT * FROM tasks WHERE list_id={list_id}
+                   """
+            )
+            result = cur.fetchall()
+
         return result
 
 
