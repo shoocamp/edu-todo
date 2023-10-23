@@ -5,6 +5,7 @@ import toml
 
 
 def create_tables(conf):
+    """This funcion create all tables"""
     commands = (
         """
         DROP TABLE IF EXISTS lists CASCADE;
