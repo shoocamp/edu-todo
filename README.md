@@ -1,5 +1,4 @@
 # Todoika
-This is a demo project.
 
 ## How to run CLI UI
 
