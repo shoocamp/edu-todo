@@ -3,6 +3,7 @@ import sys
 import argparse
 import tomllib
 from datetime import datetime as dt
+from pathlib import Path
 from typing import Optional
 
 from rich.prompt import IntPrompt, Confirm, Prompt
@@ -10,6 +11,8 @@ from rich.prompt import IntPrompt, Confirm, Prompt
 from todoika.core import TasksList
 from todoika.storage import Storage, SQLiteStorage, UserBuilder, TasksListBuilder, PSQLStorage
 from todoika.users import User
+
+CONFIG_FILE = '~/.config/todoika'
 
 
 class CLIHandler:
@@ -21,11 +24,27 @@ class CLIHandler:
         self.tasks_list_builder = TasksListBuilder(storage)
 
     def login(self):
-        user_name = Prompt.ask('Enter your name')
-        password_hash = hashlib.md5(Prompt.ask('Enter your password', password=True).encode()).hexdigest()
-        if password_hash != self.storage.get_md5hash_by_name(user_name):
-            print('Wrong username or password')
-            return
+        # Check the config file
+        user_config = Path(CONFIG_FILE).expanduser()
+
+        valid_cred_saved = False
+
+        if user_config.exists():
+            user_name, password_hash = user_config.open().read().split(":")
+            if password_hash == self.storage.get_md5hash_by_name(user_name):
+                valid_cred_saved = True
+
+        if not valid_cred_saved:
+            user_name = Prompt.ask('Enter your name')
+            password_hash = hashlib.md5(Prompt.ask('Enter your password', password=True).encode()).hexdigest()
+
+            if password_hash != self.storage.get_md5hash_by_name(user_name):
+                print('Wrong username or password')
+                return
+
+            # Write to the config file
+            user_config.open('w').write(f"{user_name}:{password_hash}")
+
         self.user = self.user_builder.build_by_name(user_name)
         self.current_list = self.tasks_list_builder.build(self.user.db_id, self.user.default_list_id)
 
@@ -108,7 +127,7 @@ class CLIHandler:
         return task_id - 1
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # noqa: C901
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', help='Path to config file')

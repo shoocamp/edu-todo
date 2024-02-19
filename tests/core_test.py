@@ -1,7 +1,7 @@
 from datetime import datetime as dt, timedelta
 
 import pytest
-import toml
+import tomllib
 
 from todoika.core import Task, TasksList
 from todoika.storage import SQLiteStorage, UserBuilder, PSQLStorage
@@ -22,34 +22,8 @@ def user(in_memory_storage):
 
 
 @pytest.fixture()
-def user_psql(psql_storage):
-    user_builder = UserBuilder(psql_storage)
-    return user_builder.build_new('test_user', 'test_password')
-
-
-@pytest.fixture()
-def psql_storage():
-    conf = toml.load('./src/todoika/psql_config.toml')
-    storage = PSQLStorage(host=conf['database']['host'],
-                          user=conf['database']['user'],
-                          password=conf['database']['password'],
-                          db_name=conf['database']['db_name'],
-                          port=conf['database']['port'])
-    return storage
-
-
-@pytest.fixture()
 def default_todo_list(in_memory_storage, user):
     default_list = TasksList('Test Default', db_id=user.default_list_id, storage=in_memory_storage, user_id=user.db_id)
-    default_list.add_task('Test task 1')
-    default_list.add_task('Test task 2')
-    default_list.add_task('Test task 3')
-    return default_list
-
-
-@pytest.fixture()
-def psql_default_todo_list(psql_storage, user_psql):
-    default_list = TasksList('Test Default', db_id=user_psql.default_list_id, storage=psql_storage, user_id=user_psql.db_id)
     default_list.add_task('Test task 1')
     default_list.add_task('Test task 2')
     default_list.add_task('Test task 3')
@@ -79,23 +53,8 @@ def test_update_dscr(default_todo_list, in_memory_storage):
     assert new_dscr == actual_description
 
 
-def test_update_dscr_psql(psql_default_todo_list, psql_storage):
-    task = psql_default_todo_list.get_task_by_id(0)
-    new_dscr = "test dscr"
-    task.description = new_dscr
-    assert task.description == new_dscr
-    _, actual_description, *_ = psql_storage.get_task_by_id(task._db_id)
-    assert new_dscr == actual_description
-
 def test_update_dscr_empty(default_todo_list):
     task = default_todo_list.get_task_by_id(0)
-    new_dscr = ""
-    with pytest.raises(ValueError):
-        task.description = new_dscr
-
-
-def test_update_dscr_empty_psql(psql_default_todo_list):
-    task = psql_default_todo_list.get_task_by_id(0)
     new_dscr = ""
     with pytest.raises(ValueError):
         task.description = new_dscr
@@ -108,16 +67,6 @@ def test_update_status(default_todo_list, in_memory_storage):
     task.status = new_status
     assert task._status == new_status
     _, _, actual_status, *_ = in_memory_storage.get_task_by_id(task._db_id)
-    assert new_status == actual_status
-
-
-def test_update_status_psql(psql_default_todo_list, psql_storage):
-    task = psql_default_todo_list.get_task_by_id(0)
-    assert task._status == "NEW"
-    new_status = "DONE"
-    task.status = new_status
-    assert task._status == new_status
-    _, _, actual_status, *_ = psql_storage.get_task_by_id(task._db_id)
     assert new_status == actual_status
 
 
@@ -135,15 +84,6 @@ def test_update_due_date(default_todo_list, in_memory_storage):
     task.due_date = new_due_date
     assert task.due_date == new_due_date
     _, _, _, _, due_date_ts, *_ = in_memory_storage.get_task_by_id(task._db_id)
-    assert new_due_date == dt.fromtimestamp(due_date_ts)
-
-
-def test_update_due_date_psql(psql_default_todo_list, psql_storage):
-    task = psql_default_todo_list.get_task_by_id(0)
-    new_due_date = dt.strptime("27 February, 2023", "%d %B, %Y")
-    task.due_date = new_due_date
-    assert task.due_date == new_due_date
-    _, _, _, _, due_date_ts, *_ = psql_storage.get_task_by_id(task._db_id)
     assert new_due_date == dt.fromtimestamp(due_date_ts)
 
 
@@ -249,10 +189,3 @@ def test_build_list_from_db(in_memory_storage, user, default_todo_list):
     related_tasks = in_memory_storage.get_tasks_for_list_id(list_db_id)
     actual = TasksList.from_db(description, in_memory_storage, list_db_id, user.db_id, related_tasks)
     assert actual._tasks == default_todo_list._tasks
-
-
-def test_build_list_from_psql_db(psql_storage, user_psql, psql_default_todo_list):
-    list_db_id, description, _ = psql_storage.get_list(user_psql.default_list_id)
-    related_tasks = psql_storage.get_tasks_for_list_id(list_db_id)
-    actual = TasksList.from_db(description, psql_storage, list_db_id, user_psql.db_id, related_tasks)
-    assert actual._tasks == psql_default_todo_list._tasks

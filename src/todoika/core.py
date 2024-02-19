@@ -19,7 +19,7 @@ class Task:
         self._due_date = due_date
         self.__storage = storage
         self._db_id = db_id
-        self._description = description
+        self.description = description
 
     @property
     def status(self):
