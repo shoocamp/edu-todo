@@ -1,7 +1,7 @@
 import hashlib
 import sys
 import argparse
-import toml
+import tomllib
 from datetime import datetime as dt
 from typing import Optional
 
@@ -114,7 +114,8 @@ if __name__ == "__main__":
     parser.add_argument('--config', help='Path to config file')
     args: argparse.Namespace = parser.parse_args()
 
-    conf = toml.load(args.config)
+    with open(args.config, "rb") as f:
+        conf = tomllib.load(f)
 
     if conf['database']['db_type'] == 'PSQL':
         active_storage = PSQLStorage(host=conf['database']['host'],
