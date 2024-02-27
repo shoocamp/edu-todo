@@ -27,6 +27,21 @@ sqlite3 todoika.db < scripts/init_db.sql
 PYTHONPATH=$PYTHONPATH:${PWD}/src python src/todoika/cli_ui.py
 ```
 
+## Docker (optional)
+
+- To build image named 'todo':
+
+```bash
+docker build -t todo .
+```
+
+- To run container with TTY:
+
+```bash
+docker run -it todo
+```
+
+
 ## How to run tests
 
 - Install dependencies:
