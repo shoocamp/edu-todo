@@ -8,9 +8,9 @@ from typing import Optional
 
 from rich.prompt import IntPrompt, Confirm, Prompt
 
-from todoika.core import TasksList
-from todoika.storage import Storage, SQLiteStorage, UserBuilder, TasksListBuilder, PSQLStorage
-from todoika.users import User
+from core import TasksList
+from storage import Storage, SQLiteStorage, UserBuilder, TasksListBuilder, PSQLStorage
+from users import User
 
 CONFIG_FILE = '~/.config/todoika'
 
@@ -113,9 +113,10 @@ class CLIHandler:
             "5: show active tasks",
             f"6: show all tasks ({len(self.current_list)})",
             "7: show completed tasks",
-            "8: quit\n"
+            "8: login page",
+            "9: quit\n"
         ]
-        command = IntPrompt.ask("\n".join(options), choices=[str(opt) for opt in range(1, 9)],
+        command = IntPrompt.ask("\n".join(options), choices=[str(opt) for opt in range(1, 10)],
                                 show_choices=False)
         return command
 
@@ -180,7 +181,9 @@ if __name__ == "__main__":  # noqa: C901
             elif main_menu_command == 7:
                 handler.show_with_status('done')
             elif main_menu_command == 8:
-                sys.exit(0)
+                handler.user = None
+            elif main_menu_command == 9:
+                exit(0)
         except KeyboardInterrupt:
             # `ctrl + c` - exit from sub-menu
             print(f"\nUndo cmd {main_menu_command}")

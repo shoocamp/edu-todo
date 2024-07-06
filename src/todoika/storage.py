@@ -4,8 +4,8 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Optional
 
-from todoika.core import TasksList
-from todoika.users import User
+from core import TasksList
+from users import User
 
 
 class Storage(ABC):

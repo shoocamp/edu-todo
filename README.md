@@ -24,7 +24,8 @@ sqlite3 todoika.db < scripts/init_db.sql
 - Run CLI UI:
 
 ```bash
-PYTHONPATH=$PYTHONPATH:${PWD}/src python src/todoika/cli_ui.py
+PYTHONPATH=$PYTHONPATH:${PWD}/src
+python src/todoika/cli_ui.py --config config.toml
 ```
 
 ## Docker (optional)
