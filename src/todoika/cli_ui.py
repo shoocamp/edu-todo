@@ -12,7 +12,7 @@ from core import TasksList
 from storage import Storage, SQLiteStorage, UserBuilder, TasksListBuilder, PSQLStorage
 from users import User
 
-CONFIG_FILE = '~/.config/todoika'
+CONFIG_FILE = '~/edu-todo/todoika'
 
 
 class CLIHandler:
@@ -156,12 +156,14 @@ if __name__ == "__main__":  # noqa: C901
         try:
             if not handler.user:
                 init_cmd = IntPrompt.ask("Login (1) or Register (2) or Quit (3)", choices=["1", "2", "3"])
+                print(f'After asking input: {init_cmd}')
                 cmd_mapping = {
                     1: handler.login,
                     2: handler.register,
                     3: sys.exit
                 }
                 cmd_mapping[init_cmd]()
+
                 continue
 
             main_menu_command = handler.get_main_menu_command()
